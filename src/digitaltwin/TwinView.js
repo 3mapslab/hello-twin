@@ -47,6 +47,16 @@ export default class TwinView {
         this.controls.dollyToCursor = false;
         this.clock = new THREE.Clock();
 
+        this.map = null;
+        this.initMap();
+
+        //Events
+        window.addEventListener('resize', this.onResize.bind(this), false);
+
+        this.animate();
+    }
+
+    initMap() {
         // Create a map tiles provider object
         var provider = new MapBoxProvider(key, "mapbox/streets-v10", MapBoxProvider.STYLE);
 
@@ -57,11 +67,6 @@ export default class TwinView {
         this.map.position.set(-coords.x, 0, coords.y);
         this.map.updateMatrixWorld(true);
         this.scene.add(this.map);
-
-        //Events
-        window.addEventListener('resize', this.onResize.bind(this), false);
-
-        this.animate();
     }
 
     onResize() {
