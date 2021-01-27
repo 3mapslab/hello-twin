@@ -280,7 +280,33 @@ export class MapView extends Mesh
 	 */
 	fetchTile(zoom, x, y)
 	{
+		this.calcTilePolygon(zoom,x,y);
 		return this.provider.fetchTile(zoom, x, y);
+	}
+
+	calcTilePolygon(zoom,x,y) {
+		let topLeft = this.tileToCoords(zoom,x,y);
+		let topRight = this.tileToCoords(zoom,x+1,y);
+		let bottomLeft = this.tileToCoords(zoom,x,y+1);
+		let bottomRight = this.tileToCoords(zoom,x+1,y+1);
+
+		let geojson = {
+			"type": "Feature",
+			"geometry": {
+				"type": "Polygon",
+				"coordinates": [[bottomLeft, bottomRight, topRight, topLeft, bottomLeft]]
+			},
+			"properties": {}
+		}
+
+		//console.log(geojson);
+	}
+
+	tileToCoords(zoom,x,y) {
+		let lon = x/Math.pow(2,zoom)*360 - 180;
+		let lat_rad = Math.atan(Math.sinh(Math.PI * (1 - 2*y / Math.pow(2,zoom))));
+		let lat = lat_rad * (180/Math.PI);
+		return [lon,lat];
 	}
 
 	raycast(raycaster, intersects)
