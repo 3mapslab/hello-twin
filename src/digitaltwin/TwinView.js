@@ -89,7 +89,6 @@ export default class TwinView {
 
     geojsonVT() {
 
-        
         fetch("bollards.geo.json")
             .then((res) => res.json())
             .then((out) => {
