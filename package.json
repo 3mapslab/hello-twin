@@ -11,6 +11,7 @@
     "camera-controls": "^1.25.3",
     "core-js": "^3.6.5",
     "geo-three": "0.0.4",
+    "geojson-vt": "^3.2.1",
     "proj4": "^2.7.0",
     "reproject": "^1.2.6",
     "stats-js": "^1.0.1",
