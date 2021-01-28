@@ -18,7 +18,7 @@ const buildingsProperties = {
 };
 
 const roadsProperties = {
-  depth: 10,
+  depth: 0.2,
   altitude: 0.1,
   material: {
     color: "#000000",
