@@ -280,6 +280,7 @@ export class MapView extends Mesh
 	 */
 	fetchTile(zoom, x, y)
 	{
+		console.log(zoom + " " + x + " " + y);
 		this.calcTilePolygon(zoom,x,y);
 		return this.provider.fetchTile(zoom, x, y);
 	}

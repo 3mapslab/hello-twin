@@ -9,6 +9,7 @@ import geojsonvt from 'geojson-vt';
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 
 CameraControls.install({ THREE: THREE });
+const far = 3500;
 
 export default class TwinView {
 
@@ -43,6 +44,9 @@ export default class TwinView {
         //Init map
         this.map = null;
         this.initMap();
+
+        // Nevoeiro
+        this.scene.fog = new THREE.Fog(0xFFFFFF, far/3, far/2);
 
         //Events
         window.addEventListener('resize', this.onResize.bind(this), false);

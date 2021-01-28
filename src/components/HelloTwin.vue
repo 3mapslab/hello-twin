@@ -9,6 +9,14 @@
 import TwinView from "@/digitaltwin/TwinView";
 import Stats from "./Stats";
 
+const terrainProperties = {
+  depth: 0.1,
+  altitude: -1,
+  material: {
+    color: "#ffffff",
+  },
+};
+
 const buildingsProperties = {
   depth: 10,
   altitude: 0.1,
@@ -19,7 +27,7 @@ const buildingsProperties = {
 
 const roadsProperties = {
   depth: 0.2,
-  altitude: 0.1,
+  altitude: 0.2,
   material: {
     color: "#000000",
   },
@@ -47,6 +55,18 @@ export default {
   },
   methods: {
     async loadBuildings() {
+      
+      fetch("https://triedeti.pt/data_geojson/terrain_v2.geojson")
+        .then((response) => {
+          return response.json();
+        })
+        .then((data) => {
+          this.twinView.loadLayerToScene(null, data, terrainProperties, false);
+        })
+        .catch((err) => {
+          console.log("Fetch Error", err);
+        });
+
       fetch("https://triedeti.pt/data_geojson/buildings_v2.geojson")
         .then((response) => {
           return response.json();
