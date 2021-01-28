@@ -8,9 +8,7 @@ import { MapPlaneNode } from "./nodes/MapPlaneNode.js";
 import { MapSphereNode } from "./nodes/MapSphereNode.js";
 import { UnitsUtils } from "./utils/UnitsUtils.js";
 import { MapHeightNodeShader } from "./nodes/MapHeightNodeShader.js";
-import intersect from '@turf/intersect';
-import { polygon, multiPolygon } from "@turf/helpers";
-import TwinView from "../TwinView.js";
+
 
 /**
  * Map viewer is used to read and display map tiles from a server.
@@ -26,9 +24,8 @@ import TwinView from "../TwinView.js";
  * @param {number} heightProvider Map height tile provider, by default no height provider is used.
  */
 export class MapView extends Mesh {
-	constructor(mode, provider, heightProvider) {
+	constructor(mode, provider, fetchEvent, heightProvider) {
 		mode = mode !== undefined ? mode : MapView.PLANAR;
-
 		var geometry;
 
 		if (mode === MapView.SPHERICAL) {
@@ -40,6 +37,9 @@ export class MapView extends Mesh {
 		}
 
 		super(geometry, new MeshBasicMaterial({ transparent: true, opacity: 0.0 }));
+
+		this.fetchEvent = fetchEvent;
+
 
 		/**
 		 * Define the type of map view in use.
@@ -255,65 +255,10 @@ export class MapView extends Mesh {
 	 * @param {number} y Tile y.
 	 */
 	fetchTile(zoom, x, y) {
-		var auxTile = this.calcTilePolygon(zoom, x, y);
-		this.incrementalGJload(auxTile);
+
+		//console.log(zoom + " " + x + " " + y);
+		this.fetchEvent.fire({"zoom": zoom, "x": x, "y": y});
 		return this.provider.fetchTile(zoom, x, y);
-	}
-
-	incrementalGJload(tile) {
-
-		const buildingsProperties = {
-			depth: 10,
-			altitude: 0.1,
-			material: {
-			  color: "#6495ed",
-			},
-		  };
-
-		fetch("https://triedeti.pt/data_geojson/buildings_v2.geojson")
-			.then((response) => {
-				return response.json();
-			})
-			.then((data) => {
-				
-				for(let feature of data.features) {
-					let tylePolygon = polygon(tile.geometry.coordinates);
-					let featurePolygon = multiPolygon(feature.geometry.coordinates);		
-					if(intersect(tylePolygon, featurePolygon)) {
-						//TwinView.loadLayerToScene(null, feature, buildingsProperties, false);
-					}
-				}
-
-			})
-			.catch((err) => {
-				console.log("Fetch Error", err);
-			});
-
-	}
-
-	calcTilePolygon(zoom, x, y) {
-		let topLeft = this.tileToCoords(zoom, x, y);
-		let topRight = this.tileToCoords(zoom, x + 1, y);
-		let bottomLeft = this.tileToCoords(zoom, x, y + 1);
-		let bottomRight = this.tileToCoords(zoom, x + 1, y + 1);
-
-		let geojson = {
-			"type": "Feature",
-			"geometry": {
-				"type": "Polygon",
-				"coordinates": [[bottomLeft, bottomRight, topRight, topLeft, bottomLeft]]
-			},
-			"properties": {}
-		}
-
-		return geojson;
-	}
-
-	tileToCoords(zoom, x, y) {
-		let lon = x / Math.pow(2, zoom) * 360 - 180;
-		let lat_rad = Math.atan(Math.sinh(Math.PI * (1 - 2 * y / Math.pow(2, zoom))));
-		let lat = lat_rad * (180 / Math.PI);
-		return [lon, lat];
 	}
 
 	raycast(raycaster, intersects) {
