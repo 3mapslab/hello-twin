@@ -17,6 +17,7 @@ const terrainProperties = {
   },
 };
 
+/*
 const buildingsProperties = {
   depth: 10,
   altitude: 0.1,
@@ -24,6 +25,7 @@ const buildingsProperties = {
     color: "#6495ed",
   },
 };
+*/
 
 const roadsProperties = {
   depth: 0.2,
@@ -54,6 +56,12 @@ export default {
     Stats,
   },
   methods: {
+
+    
+
+
+
+
     async loadBuildings() {
       
       fetch("https://triedeti.pt/data_geojson/terrain_v2.geojson")
@@ -67,6 +75,7 @@ export default {
           console.log("Fetch Error", err);
         });
 
+      /*
       fetch("https://triedeti.pt/data_geojson/buildings_v2.geojson")
         .then((response) => {
           return response.json();
@@ -82,6 +91,7 @@ export default {
         .catch((err) => {
           console.log("Fetch Error", err);
         });
+        */
 
       fetch("https://triedeti.pt/data_geojson/parks_v2.geojson")
         .then((response) => {

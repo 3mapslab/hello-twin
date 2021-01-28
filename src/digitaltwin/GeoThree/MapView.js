@@ -1,13 +1,16 @@
 /*eslint-disable*/
-import {Mesh, MeshBasicMaterial, Vector2, Vector3, Raycaster} from "three";
-import {MapSphereNodeGeometry} from "./geometries/MapSphereNodeGeometry.js";
-import {OpenStreetMapsProvider} from "./providers/OpenStreetMapsProvider.js";
-import {MapNode} from "./nodes/MapNode.js";
-import {MapHeightNode} from "./nodes/MapHeightNode.js";
-import {MapPlaneNode} from "./nodes/MapPlaneNode.js";
-import {MapSphereNode} from "./nodes/MapSphereNode.js";
-import {UnitsUtils} from "./utils/UnitsUtils.js";
-import {MapHeightNodeShader} from "./nodes/MapHeightNodeShader.js";
+import { Mesh, MeshBasicMaterial, Vector2, Vector3, Raycaster } from "three";
+import { MapSphereNodeGeometry } from "./geometries/MapSphereNodeGeometry.js";
+import { OpenStreetMapsProvider } from "./providers/OpenStreetMapsProvider.js";
+import { MapNode } from "./nodes/MapNode.js";
+import { MapHeightNode } from "./nodes/MapHeightNode.js";
+import { MapPlaneNode } from "./nodes/MapPlaneNode.js";
+import { MapSphereNode } from "./nodes/MapSphereNode.js";
+import { UnitsUtils } from "./utils/UnitsUtils.js";
+import { MapHeightNodeShader } from "./nodes/MapHeightNodeShader.js";
+import intersect from '@turf/intersect';
+import { polygon, multiPolygon } from "@turf/helpers";
+import TwinView from "../TwinView.js";
 
 /**
  * Map viewer is used to read and display map tiles from a server.
@@ -22,16 +25,13 @@ import {MapHeightNodeShader} from "./nodes/MapHeightNodeShader.js";
  * @param {number} provider Map color tile provider by default a OSM maps provider is used if none specified.
  * @param {number} heightProvider Map height tile provider, by default no height provider is used.
  */
-export class MapView extends Mesh
-{
-	constructor(mode, provider, heightProvider)
-	{
+export class MapView extends Mesh {
+	constructor(mode, provider, heightProvider) {
 		mode = mode !== undefined ? mode : MapView.PLANAR;
 
 		var geometry;
 
-		if(mode === MapView.SPHERICAL)
-		{
+		if (mode === MapView.SPHERICAL) {
 			geometry = new MapSphereNodeGeometry(UnitsUtils.EARTH_RADIUS, 64, 64, 0, 2 * Math.PI, 0, Math.PI);
 		}
 		else // if(mode === MapView.PLANAR || mode === MapView.HEIGHT)
@@ -39,8 +39,8 @@ export class MapView extends Mesh
 			geometry = MapPlaneNode.GEOMETRY;
 		}
 
-		super(geometry, new MeshBasicMaterial({transparent:true, opacity:0.0}));
-		
+		super(geometry, new MeshBasicMaterial({ transparent: true, opacity: 0.0 }));
+
 		/**
 		 * Define the type of map view in use.
 		 *
@@ -96,7 +96,7 @@ export class MapView extends Mesh
 		 * @type {number}
 		 */
 		this.thresholdDown = 0.2;
-		
+
 		/**
 		 * Root map node.
 		 *
@@ -105,30 +105,26 @@ export class MapView extends Mesh
 		 */
 		this.root = null;
 
-		if(this.mode === MapView.PLANAR)
-		{
+		if (this.mode === MapView.PLANAR) {
 			this.scale.set(UnitsUtils.EARTH_PERIMETER, 1, UnitsUtils.EARTH_PERIMETER);
 			this.root = new MapPlaneNode(null, this, MapNode.ROOT, 0, 0, 0);
 		}
-		else if(this.mode === MapView.HEIGHT)
-		{
+		else if (this.mode === MapView.HEIGHT) {
 			this.scale.set(UnitsUtils.EARTH_PERIMETER, MapHeightNode.USE_DISPLACEMENT ? MapHeightNode.MAX_HEIGHT : 1, UnitsUtils.EARTH_PERIMETER);
 			this.root = new MapHeightNode(null, this, MapNode.ROOT, 0, 0, 0);
 			this.thresholdUp = 0.5;
 			this.thresholdDown = 0.1;
 		}
-		else if(this.mode === MapView.HEIGHT_SHADER)
-		{
+		else if (this.mode === MapView.HEIGHT_SHADER) {
 			this.scale.set(UnitsUtils.EARTH_PERIMETER, MapHeightNode.USE_DISPLACEMENT ? MapHeightNode.MAX_HEIGHT : 1, UnitsUtils.EARTH_PERIMETER);
 			this.root = new MapHeightNodeShader(null, this, MapNode.ROOT, 0, 0, 0);
 		}
-		else if(this.mode === MapView.SPHERICAL)
-		{
+		else if (this.mode === MapView.SPHERICAL) {
 			this.root = new MapSphereNode(null, this, MapNode.ROOT, 0, 0, 0);
 			this.thresholdUp = 7e7;
 			this.thresholdDown = 2e8;
 		}
-		
+
 		this.add(this.root);
 
 		this._raycaster = new Raycaster();
@@ -143,10 +139,8 @@ export class MapView extends Mesh
 	 *
 	 * @method setProvider
 	 */
-	setProvider(provider)
-	{
-		if(provider !== this.provider)
-		{
+	setProvider(provider) {
+		if (provider !== this.provider) {
 			this.provider = provider;
 			this.clear();
 		}
@@ -159,10 +153,8 @@ export class MapView extends Mesh
 	 *
 	 * @method setHeightProvider
 	 */
-	setHeightProvider(heightProvider)
-	{
-		if(heightProvider !== this.heightProvider)
-		{
+	setHeightProvider(heightProvider) {
+		if (heightProvider !== this.heightProvider) {
 			this.heightProvider = heightProvider;
 			this.clear();
 		}
@@ -175,17 +167,13 @@ export class MapView extends Mesh
 	 * 
 	 * @method clear
 	 */
-	clear()
-	{
-		this.traverse(function(children)
-		{
-			if(children.childrenCache !== undefined && children.childrenCache !== null)
-			{
+	clear() {
+		this.traverse(function (children) {
+			if (children.childrenCache !== undefined && children.childrenCache !== null) {
 				children.childrenCache = null;
 			}
 
-			if(children.loadTexture !== undefined)
-			{
+			if (children.loadTexture !== undefined) {
 				children.loadTexture();
 			}
 		});
@@ -198,36 +186,29 @@ export class MapView extends Mesh
 	 *
 	 * @method onBeforeRender
 	 */
-	onBeforeRender(renderer, scene, camera, geometry, material, group)
-	{
+	onBeforeRender(renderer, scene, camera, geometry, material, group) {
 		const intersects = [];
 
-		for(let t = 0; t < this.subdivisionRays; t++)
-		{
+		for (let t = 0; t < this.subdivisionRays; t++) {
 			//Raycast from random point
 			this._mouse.set(Math.random() * 2 - 1, Math.random() * 2 - 1);
-			
+
 			//Check intersection
 			this._raycaster.setFromCamera(this._mouse, camera);
 			this._raycaster.intersectObjects(this.children, true, intersects);
 		}
 
-		if(this.mode === MapView.SPHERICAL)
-		{
-			for(var i = 0; i < intersects.length; i++)
-			{
+		if (this.mode === MapView.SPHERICAL) {
+			for (var i = 0; i < intersects.length; i++) {
 				var node = intersects[i].object;
 				const distance = intersects[i].distance * 2 ** node.level;
 
-				if(distance < this.thresholdUp)
-				{
+				if (distance < this.thresholdUp) {
 					node.subdivide();
 					return;
 				}
-				else if(distance > this.thresholdDown)
-				{
-					if(node.parentNode !== null)
-					{
+				else if (distance > this.thresholdDown) {
+					if (node.parentNode !== null) {
 						node.parentNode.simplify();
 						return;
 					}
@@ -236,22 +217,18 @@ export class MapView extends Mesh
 		}
 		else // if(this.mode === MapView.PLANAR || this.mode === MapView.HEIGHT)
 		{
-			for(var i = 0; i < intersects.length; i++)
-			{
+			for (var i = 0; i < intersects.length; i++) {
 				var node = intersects[i].object;
 				const matrix = node.matrixWorld.elements;
 				const scaleX = this._vector.set(matrix[0], matrix[1], matrix[2]).length();
 				const value = scaleX / intersects[i].distance;
 
-				if(value > this.thresholdUp)
-				{
+				if (value > this.thresholdUp) {
 					node.subdivide();
 					return;
 				}
-				else if(value < this.thresholdDown)
-				{
-					if(node.parentNode !== null)
-					{
+				else if (value < this.thresholdDown) {
+					if (node.parentNode !== null) {
 						node.parentNode.simplify();
 						return;
 					}
@@ -265,8 +242,7 @@ export class MapView extends Mesh
 	 * 
 	 * @method getMetaData
 	 */
-	getMetaData()
-	{
+	getMetaData() {
 		this.provider.getMetaData();
 	}
 
@@ -278,18 +254,48 @@ export class MapView extends Mesh
 	 * @param {number} x Tile x.
 	 * @param {number} y Tile y.
 	 */
-	fetchTile(zoom, x, y)
-	{
-		console.log(zoom + " " + x + " " + y);
-		this.calcTilePolygon(zoom,x,y);
+	fetchTile(zoom, x, y) {
+		var auxTile = this.calcTilePolygon(zoom, x, y);
+		this.incrementalGJload(auxTile);
 		return this.provider.fetchTile(zoom, x, y);
 	}
 
-	calcTilePolygon(zoom,x,y) {
-		let topLeft = this.tileToCoords(zoom,x,y);
-		let topRight = this.tileToCoords(zoom,x+1,y);
-		let bottomLeft = this.tileToCoords(zoom,x,y+1);
-		let bottomRight = this.tileToCoords(zoom,x+1,y+1);
+	incrementalGJload(tile) {
+
+		const buildingsProperties = {
+			depth: 10,
+			altitude: 0.1,
+			material: {
+			  color: "#6495ed",
+			},
+		  };
+
+		fetch("https://triedeti.pt/data_geojson/buildings_v2.geojson")
+			.then((response) => {
+				return response.json();
+			})
+			.then((data) => {
+				
+				for(let feature of data.features) {
+					let tylePolygon = polygon(tile.geometry.coordinates);
+					let featurePolygon = multiPolygon(feature.geometry.coordinates);		
+					if(intersect(tylePolygon, featurePolygon)) {
+						//TwinView.loadLayerToScene(null, feature, buildingsProperties, false);
+					}
+				}
+
+			})
+			.catch((err) => {
+				console.log("Fetch Error", err);
+			});
+
+	}
+
+	calcTilePolygon(zoom, x, y) {
+		let topLeft = this.tileToCoords(zoom, x, y);
+		let topRight = this.tileToCoords(zoom, x + 1, y);
+		let bottomLeft = this.tileToCoords(zoom, x, y + 1);
+		let bottomRight = this.tileToCoords(zoom, x + 1, y + 1);
 
 		let geojson = {
 			"type": "Feature",
@@ -300,18 +306,17 @@ export class MapView extends Mesh
 			"properties": {}
 		}
 
-		//console.log(geojson);
+		return geojson;
 	}
 
-	tileToCoords(zoom,x,y) {
-		let lon = x/Math.pow(2,zoom)*360 - 180;
-		let lat_rad = Math.atan(Math.sinh(Math.PI * (1 - 2*y / Math.pow(2,zoom))));
-		let lat = lat_rad * (180/Math.PI);
-		return [lon,lat];
+	tileToCoords(zoom, x, y) {
+		let lon = x / Math.pow(2, zoom) * 360 - 180;
+		let lat_rad = Math.atan(Math.sinh(Math.PI * (1 - 2 * y / Math.pow(2, zoom))));
+		let lat = lat_rad * (180 / Math.PI);
+		return [lon, lat];
 	}
 
-	raycast(raycaster, intersects)
-	{
+	raycast(raycaster, intersects) {
 		return false;
 	}
 }
