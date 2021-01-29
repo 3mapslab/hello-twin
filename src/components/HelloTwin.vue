@@ -88,9 +88,7 @@ export default {
       initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
     };
     this.twinView = new TwinView(this.$refs.world, configs);
-    //await this.loadBuildings();
-
-    setTimeout(() => this.loadBuildings(), 5000)
+    await this.loadBuildings();
   },
   methods: {
     async loadBuildings() {
