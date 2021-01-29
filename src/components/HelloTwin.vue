@@ -92,13 +92,12 @@ export default {
   },
   methods: {
     async loadBuildings() {
-
       fetch("https://triedeti.pt/data_geojson/terrain_v2.geojson")
         .then((response) => {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadLayerToScene(null, data, terrainProperties, false);
+          this.twinView.loadGeojsonToScene(data, terrainProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -109,12 +108,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadLayerToScene(
-            null,
-            data,
-            buildingsProperties,
-            false
-          );
+          this.twinView.loadGeojsonToScene(data, buildingsProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -125,7 +119,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadLayerToScene(null, data, parkProp, false);
+          this.twinView.loadGeojsonToScene(data, parkProp);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -136,7 +130,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadLayerToScene(null, data, gardensProperties, false);
+          this.twinView.loadGeojsonToScene(data, gardensProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -147,12 +141,11 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadLayerToScene(null, data, roadsProperties, false);
+          this.twinView.loadGeojsonToScene(data, roadsProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
         });
-        
     },
   },
 };
