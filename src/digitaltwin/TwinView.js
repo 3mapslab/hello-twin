@@ -6,8 +6,8 @@ import { UnitsUtils } from "./GeoThree/utils/UnitsUtils";
 import TwinMesh from "./TwinMesh";
 import TwinEvent from "./TwinEvent";
 import * as utils from "./utils.js"
-//import intersect from '@turf/intersect';
-//import { polygon, multiPolygon } from "@turf/helpers";
+import intersect from '@turf/intersect';
+import { polygon, multiPolygon } from "@turf/helpers";
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 
@@ -90,9 +90,9 @@ export default class TwinView {
             "point": point
         });
         
-        let twinMesh = new TwinMesh();
-        let mergedMeshes = twinMesh.loadLayer(layerCode, geojson, properties, point, this.coords);
-        this.scene.add(mergedMeshes);
+        //let twinMesh = new TwinMesh();
+        //let mergedMeshes = twinMesh.loadLayer(layerCode, geojson, properties, point, this.coords);
+        //this.scene.add(mergedMeshes);
         
     }
 
@@ -144,7 +144,7 @@ export default class TwinView {
 
     incrementalLoading(tile) {
         console.log(tile)
-        /*
+        
         if (! this.layers) return;
 
         for (let i = 0; i < this.layers.length; ++i) {
@@ -175,7 +175,7 @@ export default class TwinView {
                 }
             } 
         }
-        */
+        
     }
 
     loadTile(tile) {
