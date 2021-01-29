@@ -1,10 +1,6 @@
 import * as THREE from "three";
 import * as utils from "./utils.js";
 import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { KMZLoader } from 'three/examples/jsm/loaders/KMZLoader.js';
-import { ColladaLoader } from 'three/examples/jsm/loaders/ColladaLoader.js';
-import { OBJLoader2 } from 'three/examples/jsm/loaders/OBJLoader2.js';
 
 export default class TwinMesh extends THREE.Mesh {
 
@@ -13,7 +9,7 @@ export default class TwinMesh extends THREE.Mesh {
     }
 
     //Load Layers
-    loadLayer(layerCode, geojson, properties, point, coords) {
+    loadLayer(geojson, properties, coords) {
 
         if (geojson == null || geojson.features == null) return;
 
@@ -23,28 +19,9 @@ export default class TwinMesh extends THREE.Mesh {
         var feature;
 
         for (feature of geo.features) {
-            feature.layerCode = layerCode;
             feature.properties = Object.assign({}, properties, feature.properties);
-
-            if (point) {
-                for (let i = 1; i < feature.length; i++) {
-                    let lng = feature[i].geometry.coordinates[0];
-                    let lat = feature[i].geometry.coordinates[1];
-                    let z_fromGeoJson = feature[i].properties.Z;
-                    z_fromGeoJson = z_fromGeoJson * 5;
-                    shape = this.createAnotherShape(lng, lat, z_fromGeoJson);
-                    values.push(shape.geometry);
-                }
-
-            } else {
-                shape = this.createShape(feature, coords);
-                values.push(shape);
-            }
-
-            //if (shape) {
-            //this.scene.add(shape);
-            //shape.geometry.dispose();
-            //}
+            shape = this.createShape(feature, coords);
+            values.push(shape);
         }
 
 
@@ -161,148 +138,5 @@ export default class TwinMesh extends THREE.Mesh {
         }
 
         return vertices;
-    }
-
-    createAnotherShape(lng, lat, z) {
-
-        var material = new THREE.MeshPhongMaterial({ color: 0x372596 });
-
-        var boxWidth = 6.06;
-        var boxHeight = 2.6;
-        var boxDepth = 2.44;
-
-        let geometry = new THREE.BoxBufferGeometry(
-            boxWidth,
-            boxHeight,
-            boxDepth
-        );
-
-        geometry.position.set(lng, lat, z);
-        var mesh = new THREE.Mesh(geometry, material);
-
-        mesh.matrixAutoUpdate = false;
-        mesh.receiveShadow = false;
-        mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
-        mesh.updateMatrix();
-
-        geometry.dispose();
-
-        return mesh;
-    }
-
-    /**
-     * Adds an object to the scene in the given coordinates, given a path
-     * @param {string} modelPath - File path or URL of the object
-     * @param {Array} coordinates - Real world coordinates of the object
-     * @param {Object} rotation - Rotation of object in the 3 axes e.g. {x:1,y:0,z:0}
-     * @param {number} scale - Scale of the object
-     * @param {number} altitude - Altitude of the object
-     */
-    _loadModel(modelPath, coordinates, rotation, scale, altitude, lod_distance) {
-
-        var extensionValue = modelPath.split('.').pop();
-        var loader;
-
-        switch (extensionValue) {
-            case ("kmz"):
-                loader = new KMZLoader();
-                break;
-
-            case ("gltf"):
-                loader = new GLTFLoader();
-                break;
-
-            case ("obj"):
-                new OBJLoader2().load(modelPath,
-
-                    (model) => {
-
-                        var units = utils.convertCoordinatesToUnits(coordinates[0], coordinates[1]);
-                        var targetPosition = new THREE.Vector3(units[0] - this.centerInMeters[0], altitude || 0, -(units[1] - this.centerInMeters[1]));
-
-                        if (rotation) {
-                            model.rotation.x = rotation.x;
-                            model.rotation.y = rotation.y;
-                            model.rotation.z = rotation.z;
-                        }
-
-                        if (scale) {
-                            model.scale.copy(new THREE.Vector3(scale, scale, scale));
-                        }
-
-                        // Adding 2 levels of detail
-                        const lod = new THREE.LOD();
-                        lod.addLevel(model.scene, 0);
-                        // empty cube 
-                        const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
-                        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                        const cube = new THREE.Mesh(geometry, material);
-                        if (lod_distance == "low") lod.addLevel(cube, 500);
-                        else lod.addLevel(cube, 1500);
-                        lod.position.copy(targetPosition);
-
-                        this.scene.add(lod);
-                    },
-
-                    undefined,
-
-                    // onError callback
-                    (error) => {
-                        console.log('Error with model', modelPath);
-                        console.log(error);
-                    });
-                return;
-
-            case ("dae"):
-                loader = new ColladaLoader();
-                break;
-
-            default:
-                break;
-        }
-
-        loader.load(
-            // resource URL
-            modelPath,
-            // onLoad callback
-            (model) => {
-
-                var units = utils.convertCoordinatesToUnits(coordinates[0], coordinates[1]);
-                var targetPosition = new THREE.Vector3(units[0] - this.centerInMeters[0], altitude || 0, -(units[1] - this.centerInMeters[1]));
-
-                if (rotation) {
-                    model.rotation.x = rotation.x;
-                    model.rotation.y = rotation.y;
-                    model.rotation.z = rotation.z;
-                }
-
-                if (scale) {
-                    model.scene.scale.copy(new THREE.Vector3(scale, scale, scale));
-                }
-
-                // Adding 2 levels of detail
-                const lod = new THREE.LOD();
-                lod.addLevel(model.scene, 0);
-                // empty cube 
-                const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
-                const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                const cube = new THREE.Mesh(geometry, material);
-                if (lod_distance == "low") lod.addLevel(cube, 500);
-                else lod.addLevel(cube, 1500);
-                lod.position.copy(targetPosition);
-
-                this.scene.add(lod);
-            },
-
-            // onProgress callback
-            undefined,
-
-            // onError callback
-            (error) => {
-                console.log('Error with model', modelPath);
-                console.log(error);
-            }
-        );
-
     }
 }

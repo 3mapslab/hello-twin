@@ -82,12 +82,10 @@ export default class TwinView {
         this.renderer.setPixelRatio(window.devicePixelRatio);
     }
 
-    loadLayerToScene(layerCode, geojson, properties, point) {
+    loadGeojsonToScene(geojson, properties) {
         this.layers.push({
             "geojson": geojson,
             "properties": properties,
-            "layerCode": layerCode,
-            "point": point
         });
 
         //let twinMesh = new TwinMesh();
@@ -166,7 +164,7 @@ export default class TwinView {
 
 
                     let twinMesh = new TwinMesh();
-                    let mergedMeshes = twinMesh.loadLayer(layer.layerCode, geojson, layer.properties, layer.point, this.coords);
+                    let mergedMeshes = twinMesh.loadLayer(geojson, layer.properties, this.coords);
                     this.scene.add(mergedMeshes);
 
                 }
