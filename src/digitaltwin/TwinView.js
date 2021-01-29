@@ -3,8 +3,8 @@ import CameraControls from "camera-controls";
 import { MapView } from "./GeoThree/MapView";
 import { MapBoxProvider } from "./GeoThree/providers/MapBoxProvider";
 import { UnitsUtils } from "./GeoThree/utils/UnitsUtils";
-import TwinMesh from "./TwinMesh";
 import TwinEvent from "./TwinEvent";
+import TwinLoader from './TwinLoader'
 import * as utils from "./utils.js"
 import intersect from '@turf/intersect';
 import { polygon, multiPolygon } from "@turf/helpers";
@@ -58,7 +58,10 @@ export default class TwinView {
         window.addEventListener('resize', this.onResize.bind(this), false);
         this.animate();
 
-        this.layers = [];
+        this.layers = new Map();
+
+        //Loader
+        this.loader = new TwinLoader(this.coords);
     }
 
     initCamera() {
@@ -83,10 +86,11 @@ export default class TwinView {
         this.renderer.setPixelRatio(window.devicePixelRatio);
     }
 
-    loadGeojsonToScene(geojson, properties) {
-        this.layers.push({
+    loadGeojsonToScene(id, geojson, properties) {
+
+        this.layers.set(id, {
             "geojson": geojson,
-            "properties": properties,
+            "properties": properties
         });
 
         //let twinMesh = new TwinMesh();
@@ -106,6 +110,10 @@ export default class TwinView {
         this.controls = new CameraControls(this.camera, this.renderer.domElement);
         this.controls.verticalDragToForward = true;
         this.controls.dollyToCursor = false;
+        //Inclination(Vertical Rotation)
+        this.controls.maxPolarAngle = Math.PI / 2.5;
+        //this.controls.minPolarAngle = Math.PI / 2.5;
+        //this.controls.polarAngle = Math.PI / 4.5;
         //Zoom
         this.controls.maxDistance = 350;
     }
@@ -146,8 +154,8 @@ export default class TwinView {
     incrementalLoading(tile) {
         if (!this.layers) return;
 
-        for (let i = 0; i < this.layers.length; ++i) {
-            let layer = this.layers[i];
+        for (let layer of this.layers.values()) {
+            console.log(layer)
             let geojson = {
                 "type": "FeatureCollection",
                 "features": [],
@@ -184,9 +192,8 @@ export default class TwinView {
                 }
             }
             if (geojson.features.length > 0) {
-                let twinMesh = new TwinMesh();
 
-                let mergedMeshes = twinMesh.loadLayer(geojson, layer.properties, this.coords);
+                let mergedMeshes = this.loader.loadLayer(geojson, layer.properties);
                 console.log("merged", mergedMeshes);
                 this.scene.add(mergedMeshes);
             }

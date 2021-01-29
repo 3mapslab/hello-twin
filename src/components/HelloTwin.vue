@@ -34,6 +34,7 @@ const tiles = [
 ];
 */
 
+/*
 const terrainProperties = {
   depth: 0.1,
   altitude: -1,
@@ -41,6 +42,7 @@ const terrainProperties = {
     color: "#ffffff",
   },
 };
+*/
 
 const buildingsProperties = {
   depth: 10,
@@ -59,7 +61,7 @@ const roadsProperties = {
 };
 
 const gardensProperties = {
-  depth: 10,
+  depth: 0.2,
   altitude: 0.1,
   material: {
     color: "#008000",
@@ -67,7 +69,7 @@ const gardensProperties = {
 };
 
 const parkProp = {
-  depth: 10,
+  depth: 0.2,
   altitude: 0.1,
   material: {
     color: "#808080",
@@ -92,23 +94,25 @@ export default {
   },
   methods: {
     async loadBuildings() {
+      /*
       fetch("https://triedeti.pt/data_geojson/terrain_v2.geojson")
         .then((response) => {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadGeojsonToScene(data, terrainProperties);
+          this.twinView.loadGeojsonToScene(1, data, terrainProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
         });
+        */
 
       fetch("https://triedeti.pt/data_geojson/buildings_v2.geojson")
         .then((response) => {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadGeojsonToScene(data, buildingsProperties);
+          this.twinView.loadGeojsonToScene(2, data, buildingsProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -119,7 +123,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadGeojsonToScene(data, parkProp);
+          this.twinView.loadGeojsonToScene(3, data, parkProp);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -130,7 +134,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadGeojsonToScene(data, gardensProperties);
+          this.twinView.loadGeojsonToScene(4, data, gardensProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -141,7 +145,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadGeojsonToScene(data, roadsProperties);
+          this.twinView.loadGeojsonToScene(5, data, roadsProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
