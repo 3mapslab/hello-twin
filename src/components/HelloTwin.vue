@@ -9,6 +9,31 @@
 import TwinView from "@/digitaltwin/TwinView";
 import Stats from "./Stats";
 
+/*
+const tiles = [
+  {
+    x: 124734,
+    y: 98102,
+    zoom: 18,
+  },
+  {
+    x: 124735,
+    y: 98102,
+    zoom: 18,
+  },
+  {
+    x: 124734,
+    y: 98103,
+    zoom: 18,
+  },
+  {
+    x: 124735,
+    y: 98103,
+    zoom: 18,
+  }
+];
+*/
+
 const terrainProperties = {
   depth: 0.1,
   altitude: -1,
@@ -55,7 +80,6 @@ export default {
   },
   methods: {
     async loadBuildings() {
-      
       fetch("https://triedeti.pt/data_geojson/terrain_v2.geojson")
         .then((response) => {
           return response.json();
@@ -117,12 +141,14 @@ export default {
         });
     },
   },
-  mounted() {
+  async mounted() {
     const configs = {
       initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
     };
     this.twinView = new TwinView(this.$refs.world, configs);
-    this.loadBuildings();
+    //await this.loadBuildings();
+
+    setTimeout(() => this.loadBuildings(), 5000)
   },
 };
 </script>

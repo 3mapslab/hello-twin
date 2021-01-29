@@ -8,3 +8,10 @@ export function convertGeoJsonToWorldUnits(geojson) {
 export function convertCoordinatesToUnits(lng, lat) {
     return proj4('EPSG:3857', [lng, lat]);
 }
+
+export function tileToCoords(zoom, x, y) {
+    let lon = x / Math.pow(2, zoom) * 360 - 180;
+    let lat_rad = Math.atan(Math.sinh(Math.PI * (1 - 2 * y / Math.pow(2, zoom))));
+    let lat = lat_rad * (180 / Math.PI);
+    return [lon, lat];
+}
