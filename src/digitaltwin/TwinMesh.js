@@ -7,5 +7,4 @@ export default class TwinMesh extends THREE.Mesh {
         super();
     }
 
-    
 }

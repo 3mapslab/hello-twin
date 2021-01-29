@@ -100,7 +100,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadGeojsonToScene(1, data, terrainProperties);
+          this.twinView.storeGeojsonLayer(1, data, terrainProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -112,7 +112,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadGeojsonToScene(2, data, buildingsProperties);
+          this.twinView.storeGeojsonLayer(2, data, buildingsProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -123,7 +123,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadGeojsonToScene(3, data, parkProp);
+          this.twinView.storeGeojsonLayer(3, data, parkProp);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -134,7 +134,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadGeojsonToScene(4, data, gardensProperties);
+          this.twinView.storeGeojsonLayer(4, data, gardensProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
@@ -145,7 +145,7 @@ export default {
           return response.json();
         })
         .then((data) => {
-          this.twinView.loadGeojsonToScene(5, data, roadsProperties);
+          this.twinView.storeGeojsonLayer(5, data, roadsProperties);
         })
         .catch((err) => {
           console.log("Fetch Error", err);
