@@ -8,7 +8,7 @@ import TwinEvent from "./TwinEvent";
 import * as utils from "./utils.js"
 import intersect from '@turf/intersect';
 import { polygon, multiPolygon } from "@turf/helpers";
-import centroid from '@turf/centroid';
+//import centroid from '@turf/centroid';
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 
@@ -106,6 +106,8 @@ export default class TwinView {
         this.controls = new CameraControls(this.camera, this.renderer.domElement);
         this.controls.verticalDragToForward = true;
         this.controls.dollyToCursor = false;
+        //Zoom
+        this.controls.maxDistance = 350;
     }
 
     initMap() {
@@ -142,12 +144,14 @@ export default class TwinView {
     }
 
     incrementalLoading(tile) {
-        console.log(tile)
-
         if (!this.layers) return;
 
         for (let i = 0; i < this.layers.length; ++i) {
             let layer = this.layers[i];
+            let geojson = {
+                "type": "FeatureCollection",
+                "features": [],
+            }
             for (let j = 0; j < layer.geojson.features.length; ++j) {
                 let feature = layer.geojson.features[j]
                 let tilePolygon = polygon(tile.geometry.coordinates);
@@ -155,20 +159,12 @@ export default class TwinView {
 
                 if (intersect(tilePolygon, featurePolygon)) {
 
-                    let geojson = {
-                        "type": "FeatureCollection",
-                        "features": [feature],
-                    }
+                    geojson.features.push(feature);
 
                     layer.geojson.features.splice(j, 1);
                     --j;
 
-                    let twinMesh = new TwinMesh();
-
-                    let mergedMeshes = twinMesh.loadLayer(geojson, layer.properties, this.coords);
-                    //this.scene.add(mergedMeshes);
-
-                    var centroid_pol = centroid(featurePolygon);
+                    /*var centroid_pol = centroid(featurePolygon);
                     var coordX = centroid_pol.geometry.coordinates[0];
                     var coordY = centroid_pol.geometry.coordinates[1];
                     var units = utils.convertCoordinatesToUnits(coordX, coordY);
@@ -183,9 +179,16 @@ export default class TwinView {
                     const cube = new THREE.Mesh(geometry, material);
                     lod.addLevel(cube, 1000);
                     lod.position.copy(targetPosition);
-                    this.scene.add(lod);
+                    this.scene.add(lod);*/
 
                 }
+            }
+            if (geojson.features.length > 0) {
+                let twinMesh = new TwinMesh();
+
+                let mergedMeshes = twinMesh.loadLayer(geojson, layer.properties, this.coords);
+                console.log("merged", mergedMeshes);
+                this.scene.add(mergedMeshes);
             }
         }
 

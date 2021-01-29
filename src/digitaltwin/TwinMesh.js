@@ -15,17 +15,16 @@ export default class TwinMesh extends THREE.Mesh {
 
         var geo = utils.convertGeoJsonToWorldUnits(geojson);
         var shape = null;
-        var values = [];
+        var geometries = [];
         var feature;
 
         for (feature of geo.features) {
             feature.properties = Object.assign({}, properties, feature.properties);
             shape = this.createShape(feature, coords);
-            values.push(shape);
+            geometries.push(shape);
         }
 
-
-        return this.mergeGeometries(values, properties.material.color);
+        return this.mergeGeometries(geometries);
     }
 
     mergeGeometries(geometries) {
