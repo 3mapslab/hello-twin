@@ -8,6 +8,7 @@ import TwinEvent from "./TwinEvent";
 import * as utils from "./utils.js"
 import intersect from '@turf/intersect';
 import { polygon, multiPolygon } from "@turf/helpers";
+import centroid from '@turf/centroid';
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 
@@ -164,10 +165,26 @@ export default class TwinView {
                     layer.geojson.features.splice(j, 1);
                     --j;
 
-
                     let twinMesh = new TwinMesh();
                     let mergedMeshes = twinMesh.loadLayer(layer.layerCode, geojson, layer.properties, layer.point, this.coords);
-                    this.scene.add(mergedMeshes);
+                    //this.scene.add(mergedMeshes);
+
+                    var centroid_pol = centroid(featurePolygon);
+                    var coordX = centroid_pol.geometry.coordinates[0];
+                    var coordY = centroid_pol.geometry.coordinates[1];
+                    var units = utils.convertCoordinatesToUnits(coordX, coordY);
+                    var targetPosition = new THREE.Vector3(units[0] - this.coords.x, 0, -(units[1] - this.coords.y));
+
+                    // Adding 2 levels of detail
+                    const lod = new THREE.LOD();
+                    lod.addLevel(mergedMeshes, 0);
+                    // empty small cube 
+                    const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
+                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                    const cube = new THREE.Mesh(geometry, material);
+                    lod.addLevel(cube, 1000);
+                    lod.position.copy(targetPosition);
+                    this.scene.add(lod);
 
                 }
             }
