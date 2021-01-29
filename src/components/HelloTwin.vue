@@ -78,8 +78,23 @@ export default {
   components: {
     Stats,
   },
+  data() {
+    return {
+      twinView: null,
+    };
+  },
+  async mounted() {
+    const configs = {
+      initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
+    };
+    this.twinView = new TwinView(this.$refs.world, configs);
+    //await this.loadBuildings();
+
+    setTimeout(() => this.loadBuildings(), 5000)
+  },
   methods: {
     async loadBuildings() {
+
       fetch("https://triedeti.pt/data_geojson/terrain_v2.geojson")
         .then((response) => {
           return response.json();
@@ -139,16 +154,8 @@ export default {
         .catch((err) => {
           console.log("Fetch Error", err);
         });
+        
     },
-  },
-  async mounted() {
-    const configs = {
-      initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
-    };
-    this.twinView = new TwinView(this.$refs.world, configs);
-    //await this.loadBuildings();
-
-    setTimeout(() => this.loadBuildings(), 5000)
   },
 };
 </script>

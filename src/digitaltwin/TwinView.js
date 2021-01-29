@@ -12,7 +12,7 @@ import { polygon, multiPolygon } from "@turf/helpers";
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 
 CameraControls.install({ THREE: THREE });
-const far = 3500;
+//const far = 3500;
 
 export default class TwinView {
 
@@ -51,7 +51,7 @@ export default class TwinView {
         this.initMap();
 
         // Nevoeiro
-        this.scene.fog = new THREE.Fog(0xFFFFFF, far / 3, far / 2);
+        //this.scene.fog = new THREE.Fog(0xFFFFFF, far / 3, far / 2);
 
         //Events
         window.addEventListener('resize', this.onResize.bind(this), false);
@@ -83,17 +83,17 @@ export default class TwinView {
     }
 
     loadLayerToScene(layerCode, geojson, properties, point) {
-        this.layers.push( {
+        this.layers.push({
             "geojson": geojson,
             "properties": properties,
             "layerCode": layerCode,
             "point": point
         });
-        
+
         //let twinMesh = new TwinMesh();
         //let mergedMeshes = twinMesh.loadLayer(layerCode, geojson, properties, point, this.coords);
         //this.scene.add(mergedMeshes);
-        
+
     }
 
     initLights() {
@@ -144,8 +144,8 @@ export default class TwinView {
 
     incrementalLoading(tile) {
         console.log(tile)
-        
-        if (! this.layers) return;
+
+        if (!this.layers) return;
 
         for (let i = 0; i < this.layers.length; ++i) {
             let layer = this.layers[i];
@@ -153,37 +153,36 @@ export default class TwinView {
                 let feature = layer.geojson.features[j]
                 let tilePolygon = polygon(tile.geometry.coordinates);
                 let featurePolygon = multiPolygon(feature.geometry.coordinates);
-                
+
                 if (intersect(tilePolygon, featurePolygon)) {
+
                     let geojson = {
                         "type": "FeatureCollection",
                         "features": [feature],
                     }
-                    this.loadLayerToScene(
-                        null,
-                        geojson,
-                        layer.properties,
-                        false
-                    );
 
-                    layer.geojson.features.splice(j,1);
+                    layer.geojson.features.splice(j, 1);
                     --j;
+
 
                     let twinMesh = new TwinMesh();
                     let mergedMeshes = twinMesh.loadLayer(layer.layerCode, geojson, layer.properties, layer.point, this.coords);
                     this.scene.add(mergedMeshes);
+
                 }
-            } 
+            }
         }
-        
+
     }
 
     loadTile(tile) {
         let zoom = tile.zoom;
         let x = tile.x;
         let y = tile.y;
-        var polygon = this.calcTilePolygon(zoom, x, y);
-        this.incrementalLoading(polygon);
+        if (zoom >= 18) {
+            var polygon = this.calcTilePolygon(zoom, x, y);
+            this.incrementalLoading(polygon);
+        }
     }
 
     calcTilePolygon(zoom, x, y) {
