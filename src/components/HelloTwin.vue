@@ -33,7 +33,7 @@ const tiles = [
   }
 ];
 */
-/*
+
 const terrainProperties = {
   depth: 0.1,
   altitude: -1,
@@ -41,7 +41,7 @@ const terrainProperties = {
     color: "#ffffff",
   },
 };
-*/
+
 const buildingsProperties = {
   depth: 10,
   altitude: 0.1,
@@ -49,7 +49,7 @@ const buildingsProperties = {
     color: "#6495ed",
   },
 };
-/*
+
 const roadsProperties = {
   depth: 0.2,
   altitude: 0.2,
@@ -57,7 +57,7 @@ const roadsProperties = {
     color: "#000000",
   },
 };
-/*
+
 const gardensProperties = {
   depth: 10,
   altitude: 0.1,
@@ -73,7 +73,7 @@ const parkProp = {
     color: "#808080",
   },
 };
-*/
+
 export default {
   components: {
     Stats,
@@ -92,7 +92,7 @@ export default {
   },
   methods: {
     async loadBuildings() {
-      /*fetch("https://triedeti.pt/data_geojson/terrain_v2.geojson")
+      fetch("https://triedeti.pt/data_geojson/terrain_v2.geojson")
         .then((response) => {
           return response.json();
         })
@@ -102,8 +102,8 @@ export default {
         .catch((err) => {
           console.log("Fetch Error", err);
         });
-*/
-      fetch("https://triedeti.pt/data_geojson/buildings.geo.json")
+
+      fetch("https://triedeti.pt/data_geojson/buildings_v2.geojson")
         .then((response) => {
           return response.json();
         })
@@ -113,7 +113,7 @@ export default {
         .catch((err) => {
           console.log("Fetch Error", err);
         });
-/*
+
       fetch("https://triedeti.pt/data_geojson/parks_v2.geojson")
         .then((response) => {
           return response.json();
@@ -145,7 +145,7 @@ export default {
         })
         .catch((err) => {
           console.log("Fetch Error", err);
-        });*/
+        });
     },
   },
 };
