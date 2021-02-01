@@ -9,7 +9,7 @@ import * as utils from "./utils.js"
 import intersect from '@turf/intersect';
 import { multiPolygon } from "@turf/helpers";
 //import { bbox } from '@turf/bbox';
-//import centroid from "@turf/centroid";
+import centroid from "@turf/centroid";
 import { polygon } from "@turf/helpers";
 
 
@@ -62,7 +62,7 @@ export default class TwinView {
         this.animate();
 
         this.layers = new Map();
-        this.tiles = {};
+        this.tiles = new Map();
 
         //Loader
         this.loader = new TwinLoader(this.coords, this.scene);
@@ -92,25 +92,27 @@ export default class TwinView {
 
     storeGeojsonLayer(id, geojson, properties) {
 
-        /*
         for(let feature of geojson.features) {
             let centroidObj = centroid(multiPolygon(feature.geometry.coordinates));
             let lon = centroidObj.geometry.coordinates[0];
             let lat = centroidObj.geometry.coordinates[1];
             let xy = this.coordsToTile(lon, lat, 18);
 
-            let arrayaux = [xy,id]
-.
+            let arrayaux = xy + " " + id;
+
             // key: x,y,layer
             // value: features of that layer and tile
 
+            if(!this.tiles.has(arrayaux)) {
+                this.tiles.set(arrayaux, []);
+            }
             
             let tile = this.tiles.get(arrayaux);
             tile.push(feature);
             this.tiles.set(arrayaux, tile);
-            if (tile.length > 1) console.log("aa")
         }
-        */
+
+        console.log(this.tiles)
 
         this.layers.set(id, {
             "geojson": geojson,
@@ -179,7 +181,7 @@ export default class TwinView {
                 "features": [],
             }
             for (let j = 0; j < layer.geojson.features.length; ++j) {
-                let feature = layer.geojson.features[j]
+                let feature = layer.geojson.features[j];
                 let tilePolygon = polygon(tile.geometry.coordinates);
                 let featurePolygon = multiPolygon(feature.geometry.coordinates);
 
