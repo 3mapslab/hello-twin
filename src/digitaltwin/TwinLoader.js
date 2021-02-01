@@ -1,18 +1,20 @@
 import * as THREE from "three";
 import * as utils from "./utils.js";
 import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
+import centroid from '@turf/centroid';
+import { multiPolygon } from "@turf/helpers";
 
 var offset = 0;
 
 export default class TwinLoader {
 
-    constructor(center) {
+    constructor(center, scene) {
         this.center = center; // in meters
+        this.scene = scene;
     }
 
     //Load Layers
     loadLayer(geojson, properties) {
-
         if (geojson == null || geojson.features == null) return;
 
         var geo = utils.convertGeoJsonToWorldUnits(geojson);
@@ -27,6 +29,29 @@ export default class TwinLoader {
         }
 
         return this.mergeGeometries(geometries);
+    }
+
+    loadLayerInstancedMesh(geojson) {
+        if (geojson == null || geojson.features == null) return;
+
+        let count = geojson.features.length;
+        let geometry = new THREE.BoxBufferGeometry(10, 10, 10);
+        let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        let mesh = new THREE.InstancedMesh(geometry, material, count);
+
+        const dummy = new THREE.Object3D();
+        for (let i = 0; i < count; i++) {
+            let feature = geojson.features[i];
+            var centroid_obj = centroid(multiPolygon(feature.geometry.coordinates));
+            let coordX = centroid_obj.geometry.coordinates[0];
+            let coordY = centroid_obj.geometry.coordinates[1];
+            let units = utils.convertCoordinatesToUnits(coordX, coordY);
+            dummy.position.set(units[0] - this.center.x, 0, -(units[1] - this.center.y));
+            dummy.updateMatrix();
+            mesh.setMatrixAt(i++, dummy.matrix);
+        }
+
+        return mesh;
     }
 
     mergeGeometries(geometries) {

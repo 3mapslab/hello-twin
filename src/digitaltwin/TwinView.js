@@ -60,7 +60,7 @@ export default class TwinView {
         this.layers = new Map();
 
         //Loader
-        this.loader = new TwinLoader(this.coords);
+        this.loader = new TwinLoader(this.coords, this.scene);
     }
 
     initCamera() {
@@ -145,6 +145,7 @@ export default class TwinView {
     }
 
     incrementalLoading(tile) {
+        
         if (!this.layers) return;
 
         for (let layer of this.layers.values()) {
@@ -158,18 +159,25 @@ export default class TwinView {
                 let featurePolygon = multiPolygon(feature.geometry.coordinates);
 
                 if (intersect(tilePolygon, featurePolygon)) {
-
                     geojson.features.push(feature);
-
                     layer.geojson.features.splice(j, 1);
                     --j;
                 }
             }
-            if (geojson.features.length > 0) {
 
+            if (geojson.features.length > 0) {
                 let mergedMeshes = this.loader.loadLayer(geojson, layer.properties);
                 this.scene.add(mergedMeshes);
             }
+
+            /*
+            if (geojson.features.length > 0) {
+                let mesh = this.loader.loadLayerInstancedMesh(geojson);
+                console.log(mesh, "mesh");
+                this.scene.add(mesh);
+            }
+            */
+            
         }
 
     }
