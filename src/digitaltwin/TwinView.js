@@ -7,7 +7,11 @@ import TwinEvent from "./TwinEvent";
 import TwinLoader from './TwinLoader'
 import * as utils from "./utils.js"
 import intersect from '@turf/intersect';
-import { polygon, multiPolygon } from "@turf/helpers";
+import { multiPolygon } from "@turf/helpers";
+//import { bbox } from '@turf/bbox';
+//import centroid from "@turf/centroid";
+import { polygon } from "@turf/helpers";
+
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 
@@ -58,6 +62,7 @@ export default class TwinView {
         this.animate();
 
         this.layers = new Map();
+        this.tiles = {};
 
         //Loader
         this.loader = new TwinLoader(this.coords, this.scene);
@@ -86,6 +91,26 @@ export default class TwinView {
     }
 
     storeGeojsonLayer(id, geojson, properties) {
+
+        /*
+        for(let feature of geojson.features) {
+            let centroidObj = centroid(multiPolygon(feature.geometry.coordinates));
+            let lon = centroidObj.geometry.coordinates[0];
+            let lat = centroidObj.geometry.coordinates[1];
+            let xy = this.coordsToTile(lon, lat, 18);
+
+            let arrayaux = [xy,id]
+.
+            // key: x,y,layer
+            // value: features of that layer and tile
+
+            
+            let tile = this.tiles.get(arrayaux);
+            tile.push(feature);
+            this.tiles.set(arrayaux, tile);
+            if (tile.length > 1) console.log("aa")
+        }
+        */
 
         this.layers.set(id, {
             "geojson": geojson,
@@ -165,6 +190,7 @@ export default class TwinView {
                 }
             }
 
+
             if (geojson.features.length > 0) {
                 let mergedMeshes = this.loader.loadLayer(geojson, layer.properties);
                 this.scene.add(mergedMeshes);
@@ -177,9 +203,8 @@ export default class TwinView {
                 this.scene.add(mesh);
             }
             */
-            
         }
-
+        
     }
 
     loadTile(tile) {
@@ -190,6 +215,12 @@ export default class TwinView {
             var polygon = this.calcTilePolygon(zoom, x, y);
             this.incrementalLoading(polygon);
         }
+    }
+
+    coordsToTile(lon, lat, zoom) {
+        let x = Math.floor((lon+180)/360*Math.pow(2,zoom))
+        let y = Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom))
+        return [x,y];
     }
 
     calcTilePolygon(zoom, x, y) {

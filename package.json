@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "@turf/bbox": "^6.3.0",
     "@turf/centroid": "^6.3.0",
     "@turf/helpers": "^6.3.0",
     "@turf/intersect": "^6.3.0",
