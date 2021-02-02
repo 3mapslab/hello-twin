@@ -119,30 +119,9 @@ export default class TwinView {
             }
 
         } else {
-            for (let feature of geojson.features) {
-                feature.loaded = false;
-                for (let j = 0; j < feature.geometry.coordinates.length; ++j) {
-                    for (let k = 0; k < feature.geometry.coordinates[j].length; ++k) {
-                        let coordinates = feature.geometry.coordinates[j][k];
-                        for (let i = 0; i < coordinates.length; ++i) {
 
-                            // 18 is the zoom level
-                            let xy = this.coordsToTile(coordinates[i][0], coordinates[i][1], 18);
-
-                            let keyTile = xy[0] + " " + xy[1] + " " + id;
-
-                            // key: x y layer
-                            // value: features of that layer and tile
-
-                            if (!this.tiles.has(keyTile)) {
-                                this.tiles.set(keyTile, []);
-                            }
-                            let tile = this.tiles.get(keyTile);
-                            tile.push(feature);
-                            this.tiles.set(keyTile, tile);
-                        }
-                    }
-                }
+            for(let feature of geojson.features) {
+                this.storeFeature(id, feature, feature.geometry.coordinates)
             }
         }
 
@@ -151,6 +130,31 @@ export default class TwinView {
             "properties": properties,
             "type": type,
         });
+    }
+
+    // Iterate recursively through all coordinates in array with unknown depth
+    storeFeature(id, feature, coordinates) {
+
+        if (coordinates[0][0] == null) {
+
+            let xy = this.coordsToTile(coordinates[0], coordinates[1], 18);
+            let keyTile = xy[0] + " " + xy[1] + " " + id;
+
+            // key: x y layer
+            // value: features of that layer and tile
+
+            if (!this.tiles.has(keyTile)) {
+                this.tiles.set(keyTile, []);
+            }
+            let tile = this.tiles.get(keyTile);
+            tile.push(feature);
+            this.tiles.set(keyTile, tile);
+            return;
+        }
+
+        for(let i = 0; i < coordinates.length; ++i) {
+            this.storeFeature(id, feature, coordinates[i])
+        }
 
     }
 
