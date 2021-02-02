@@ -92,21 +92,23 @@ export default class TwinView {
 
     storeGeojsonLayer(id, geojson, properties) {
 
-        for(let feature of geojson.features) {
+        for (let feature of geojson.features) {
             let centroidObj = centroid(multiPolygon(feature.geometry.coordinates));
             let lon = centroidObj.geometry.coordinates[0];
             let lat = centroidObj.geometry.coordinates[1];
             let xy = this.coordsToTile(lon, lat, 18);
+            let x = xy[0];
+            let y = xy[1]
 
-            let arrayaux = xy + " " + id;
+            let arrayaux = x + " " + y + " " + id;
 
             // key: x,y,layer
             // value: features of that layer and tile
 
-            if(!this.tiles.has(arrayaux)) {
+            if (!this.tiles.has(arrayaux)) {
                 this.tiles.set(arrayaux, []);
             }
-            
+
             let tile = this.tiles.get(arrayaux);
             tile.push(feature);
             this.tiles.set(arrayaux, tile);
@@ -171,15 +173,16 @@ export default class TwinView {
         this.renderer.render(this.scene, this.camera);
     }
 
-    incrementalLoading(tile) {
-        
+    incrementalLoading(x, y) {
+
         if (!this.layers) return;
 
-        for (let layer of this.layers.values()) {
+        for (var [key, value] of this.layers.entries()) {
             let geojson = {
                 "type": "FeatureCollection",
                 "features": [],
             }
+            /*
             for (let j = 0; j < layer.geojson.features.length; ++j) {
                 let feature = layer.geojson.features[j];
                 let tilePolygon = polygon(tile.geometry.coordinates);
@@ -191,10 +194,20 @@ export default class TwinView {
                     --j;
                 }
             }
+            */
 
+            let first_part_key = x + " " + y;
+            let second_part_key = key;
+            let key_tiles = first_part_key + " " + second_part_key;
+
+            if (this.tiles.has(key_tiles)) {
+                for (let i = 0; i < this.tiles.get(key_tiles).length; i++) {
+                    geojson.features.push(this.tiles.get(key_tiles)[i]);
+                }
+            }
 
             if (geojson.features.length > 0) {
-                let mergedMeshes = this.loader.loadLayer(geojson, layer.properties);
+                let mergedMeshes = this.loader.loadLayer(geojson, value.properties);
                 this.scene.add(mergedMeshes);
             }
 
@@ -206,7 +219,7 @@ export default class TwinView {
             }
             */
         }
-        
+
     }
 
     loadTile(tile) {
@@ -214,15 +227,15 @@ export default class TwinView {
         let x = tile.x;
         let y = tile.y;
         if (zoom >= 18) {
-            var polygon = this.calcTilePolygon(zoom, x, y);
-            this.incrementalLoading(polygon);
+            // var polygon = this.calcTilePolygon(zoom, x, y);
+            this.incrementalLoading(x, y);
         }
     }
 
     coordsToTile(lon, lat, zoom) {
-        let x = Math.floor((lon+180)/360*Math.pow(2,zoom))
-        let y = Math.floor((1-Math.log(Math.tan(lat*Math.PI/180) + 1/Math.cos(lat*Math.PI/180))/Math.PI)/2 *Math.pow(2,zoom))
-        return [x,y];
+        let x = Math.floor((lon + 180) / 360 * Math.pow(2, zoom))
+        let y = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom))
+        return [x, y];
     }
 
     calcTilePolygon(zoom, x, y) {

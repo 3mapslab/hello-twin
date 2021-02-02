@@ -107,7 +107,7 @@ export default {
         });
         */
 
-      fetch("https://triedeti.pt/data_geojson/buildings.geojson")
+      fetch("https://triedeti.pt/data_geojson/buildings_v2.geojson")
         .then((response) => {
           return response.json();
         })
