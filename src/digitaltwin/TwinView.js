@@ -94,28 +94,23 @@ export default class TwinView {
 
         for (let feature of geojson.features) {
             feature.loaded = false;
-
             for (let j = 0; j < feature.geometry.coordinates.length; ++j) {
                 for (let k = 0; k < feature.geometry.coordinates[j].length; ++k) {
-                let coordinates = feature.geometry.coordinates[j][k];
+                    let coordinates = feature.geometry.coordinates[j][k];
                     for (let i = 0; i < coordinates.length; ++i) {
-                        
-
                         let lon = coordinates[i][0];
                         let lat = coordinates[i][1];
                         let xy = this.coordsToTile(lon, lat, 18);
                         let x = xy[0];
                         let y = xy[1]
-            
                         let arrayaux = x + " " + y + " " + id;
-            
-                        // key: x,y,layer
+
+                        // key: x y layer
                         // value: features of that layer and tile
-            
+
                         if (!this.tiles.has(arrayaux)) {
                             this.tiles.set(arrayaux, []);
                         }
-            
                         let tile = this.tiles.get(arrayaux);
                         tile.push(feature);
                         this.tiles.set(arrayaux, tile);
@@ -190,19 +185,6 @@ export default class TwinView {
                 "type": "FeatureCollection",
                 "features": [],
             }
-            /*
-            for (let j = 0; j < layer.geojson.features.length; ++j) {
-                let feature = layer.geojson.features[j];
-                let tilePolygon = polygon(tile.geometry.coordinates);
-                let featurePolygon = multiPolygon(feature.geometry.coordinates);
-
-                if (intersect(tilePolygon, featurePolygon)) {
-                    geojson.features.push(feature);
-                    layer.geojson.features.splice(j, 1);
-                    --j;
-                }
-            }
-            */
 
             let first_part_key = x + " " + y;
             let second_part_key = key;
@@ -221,18 +203,9 @@ export default class TwinView {
             }
 
             if (geojson.features.length > 0) {
-                console.log("maior q 0")
                 let mergedMeshes = this.loader.loadLayer(geojson, value.properties);
                 this.scene.add(mergedMeshes);
             }
-
-            /*
-            if (geojson.features.length > 0) {
-                let mesh = this.loader.loadLayerInstancedMesh(geojson);
-                console.log(mesh, "mesh");
-                this.scene.add(mesh);
-            }
-            */
         }
 
     }
