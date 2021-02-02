@@ -7,14 +7,10 @@ import TwinEvent from "./TwinEvent";
 import TwinLoader from './TwinLoader'
 import * as utils from "./utils.js"
 import { getType } from "@turf/invariant"
-//import intersect from '@turf/intersect';
-//import { multiPolygon } from "@turf/helpers";
-//import { bbox } from '@turf/bbox';
-//import centroid from "@turf/centroid";
-//import { polygon } from "@turf/helpers";
 
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
+const tileLevel = 18;
 
 CameraControls.install({ THREE: THREE });
 //const far = 3500;
@@ -100,15 +96,11 @@ export default class TwinView {
                     feature.loaded = false;
 
                     let coordinates = feature.geometry.coordinates;
-
-                    // 18 is the zoom level
-                    let xy = this.coordsToTile(coordinates[0], coordinates[1], 18);
-
+                    let xy = this.coordsToTile(coordinates[0], coordinates[1], tileLevel);
                     let keyTile = xy[0] + " " + xy[1] + " " + id;
 
                     // key: x y layer
                     // value: features of that layer and tile
-
                     if (!this.tiles.has(keyTile)) {
                         this.tiles.set(keyTile, []);
                     }
@@ -121,6 +113,7 @@ export default class TwinView {
         } else {
 
             for(let feature of geojson.features) {
+                feature.loaded = false;
                 this.storeFeature(id, feature, feature.geometry.coordinates)
             }
         }
@@ -137,7 +130,7 @@ export default class TwinView {
 
         if (coordinates[0][0] == null) {
 
-            let xy = this.coordsToTile(coordinates[0], coordinates[1], 18);
+            let xy = this.coordsToTile(coordinates[0], coordinates[1], tileLevel);
             let keyTile = xy[0] + " " + xy[1] + " " + id;
 
             // key: x y layer
@@ -241,7 +234,7 @@ export default class TwinView {
         let zoom = tile.zoom;
         let x = tile.x;
         let y = tile.y;
-        if (zoom >= 18) {
+        if (zoom >= tileLevel) {
             // var polygon = this.calcTilePolygon(zoom, x, y);
             this.incrementalLoading(x, y);
         }
