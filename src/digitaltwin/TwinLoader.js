@@ -39,7 +39,6 @@ export default class TwinLoader {
         let count = geojson.features.length;
         
         const geometry = await this.loadGeometry('./cabeco.json')
-        console.log(geometry)
         let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         let mesh = new THREE.InstancedMesh(geometry, material, count);
     
@@ -53,7 +52,6 @@ export default class TwinLoader {
             dummy.updateMatrix();
             mesh.setMatrixAt(i++, dummy.matrix);
         }
-        console.log("mesh1:" + mesh);   
         return mesh;
     }
 
