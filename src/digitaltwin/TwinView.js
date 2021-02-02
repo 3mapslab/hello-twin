@@ -201,7 +201,7 @@ export default class TwinView {
         this.renderer.render(this.scene, this.camera);
     }
 
-    incrementalLoading(x, y) {
+    async incrementalLoading(x, y) {
 
         if (!this.layers) return;
         for (var [id, value] of this.layers.entries()) {
@@ -223,7 +223,7 @@ export default class TwinView {
             }
 
             if (geojson.features.length > 0) {
-                let mesh = this.loader.loadLayer(geojson, value.properties, value.type);
+                let mesh = await this.loader.loadLayer(geojson, value.properties, value.type);
                 this.scene.add(mesh);
             }
         }

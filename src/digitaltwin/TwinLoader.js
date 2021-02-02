@@ -37,24 +37,24 @@ export default class TwinLoader {
         if (geojson == null || geojson.features == null) return;
 
         let count = geojson.features.length;
-        await this.loadGeometry("./cabeco.json").then((geometry) => {
-            let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-            let mesh = new THREE.InstancedMesh(geometry, material, count);
-            console.log("mesh",mesh);
-            const dummy = new THREE.Object3D();
-            for (let i = 1; i < count; i++) {
-                let feature = geojson.features[i];
-                let coordX = feature.geometry.coordinates[0];
-                let coordY = feature.geometry.coordinates[1];
-                let units = utils.convertCoordinatesToUnits(coordX, coordY);
-                dummy.position.set(units[0] - this.center.x, 0, -(units[1] - this.center.y));
-                dummy.updateMatrix();
-                mesh.setMatrixAt(i++, dummy.matrix);
-            }
-
-            return mesh;
-        });
-
+        
+        const geometry = await this.loadGeometry('./cabeco.json')
+        console.log(geometry)
+        let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        let mesh = new THREE.InstancedMesh(geometry, material, count);
+    
+        const dummy = new THREE.Object3D();
+        for (let i = 1; i < count; i++) {
+            let feature = geojson.features[i];
+            let coordX = feature.geometry.coordinates[0];
+            let coordY = feature.geometry.coordinates[1];
+            let units = utils.convertCoordinatesToUnits(coordX, coordY);
+            dummy.position.set(units[0] - this.center.x, 0, -(units[1] - this.center.y));
+            dummy.updateMatrix();
+            mesh.setMatrixAt(i++, dummy.matrix);
+        }
+        console.log("mesh1:" + mesh);   
+        return mesh;
     }
 
     mergeGeometries(geometries) {
