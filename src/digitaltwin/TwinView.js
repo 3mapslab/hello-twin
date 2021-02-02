@@ -6,11 +6,11 @@ import { UnitsUtils } from "./GeoThree/utils/UnitsUtils";
 import TwinEvent from "./TwinEvent";
 import TwinLoader from './TwinLoader'
 import * as utils from "./utils.js"
-import intersect from '@turf/intersect';
-import { multiPolygon } from "@turf/helpers";
+//import intersect from '@turf/intersect';
+//import { multiPolygon } from "@turf/helpers";
 //import { bbox } from '@turf/bbox';
-import centroid from "@turf/centroid";
-import { polygon } from "@turf/helpers";
+//import centroid from "@turf/centroid";
+//import { polygon } from "@turf/helpers";
 
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
@@ -93,28 +93,36 @@ export default class TwinView {
     storeGeojsonLayer(id, geojson, properties) {
 
         for (let feature of geojson.features) {
-            let centroidObj = centroid(multiPolygon(feature.geometry.coordinates));
-            let lon = centroidObj.geometry.coordinates[0];
-            let lat = centroidObj.geometry.coordinates[1];
-            let xy = this.coordsToTile(lon, lat, 18);
-            let x = xy[0];
-            let y = xy[1]
+            feature.loaded = false;
 
-            let arrayaux = x + " " + y + " " + id;
+            for (let j = 0; j < feature.geometry.coordinates.length; ++j) {
+                for (let k = 0; k < feature.geometry.coordinates[j].length; ++k) {
+                let coordinates = feature.geometry.coordinates[j][k];
+                    for (let i = 0; i < coordinates.length; ++i) {
+                        
 
-            // key: x,y,layer
-            // value: features of that layer and tile
-
-            if (!this.tiles.has(arrayaux)) {
-                this.tiles.set(arrayaux, []);
+                        let lon = coordinates[i][0];
+                        let lat = coordinates[i][1];
+                        let xy = this.coordsToTile(lon, lat, 18);
+                        let x = xy[0];
+                        let y = xy[1]
+            
+                        let arrayaux = x + " " + y + " " + id;
+            
+                        // key: x,y,layer
+                        // value: features of that layer and tile
+            
+                        if (!this.tiles.has(arrayaux)) {
+                            this.tiles.set(arrayaux, []);
+                        }
+            
+                        let tile = this.tiles.get(arrayaux);
+                        tile.push(feature);
+                        this.tiles.set(arrayaux, tile);
+                    }
+                }
             }
-
-            let tile = this.tiles.get(arrayaux);
-            tile.push(feature);
-            this.tiles.set(arrayaux, tile);
         }
-
-        console.log(this.tiles)
 
         this.layers.set(id, {
             "geojson": geojson,
@@ -202,11 +210,18 @@ export default class TwinView {
 
             if (this.tiles.has(key_tiles)) {
                 for (let i = 0; i < this.tiles.get(key_tiles).length; i++) {
-                    geojson.features.push(this.tiles.get(key_tiles)[i]);
+                    let feature = this.tiles.get(key_tiles)[i];
+                    if (!feature.loaded) {
+
+                        geojson.features.push(feature);
+                        feature.loaded = true;
+
+                    }
                 }
             }
 
             if (geojson.features.length > 0) {
+                console.log("maior q 0")
                 let mergedMeshes = this.loader.loadLayer(geojson, value.properties);
                 this.scene.add(mergedMeshes);
             }
