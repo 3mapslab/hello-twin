@@ -1,8 +1,6 @@
 import * as THREE from "three";
 import * as utils from "./utils.js";
 import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
-import centroid from '@turf/centroid';
-import { multiPolygon } from "@turf/helpers";
 
 var offset = 0;
 
@@ -14,7 +12,7 @@ export default class TwinLoader {
     }
 
     //Load Layers
-    loadLayer(geojson, properties) {
+    loadLayer(geojson, properties, geojsonType) {
         if (geojson == null || geojson.features == null) return;
 
         var geo = utils.convertGeoJsonToWorldUnits(geojson);
@@ -22,36 +20,41 @@ export default class TwinLoader {
         var geometries = [];
         var feature;
 
-        for (feature of geo.features) {
-            feature.properties = Object.assign({}, properties, feature.properties);
-            shape = this.createShape(feature);
-            geometries.push(shape);
-        }
+        if (geojsonType == "Point") {
+            return this.loadLayerInstancedMesh(geojson);
+        } else {
+            for (feature of geo.features) {
+                feature.properties = Object.assign({}, properties, feature.properties);
+                shape = this.createShape(feature);
+                geometries.push(shape);
+            }
 
-        return this.mergeGeometries(geometries);
+            return this.mergeGeometries(geometries);
+        }
     }
 
-    loadLayerInstancedMesh(geojson) {
+    async loadLayerInstancedMesh(geojson) {
         if (geojson == null || geojson.features == null) return;
 
         let count = geojson.features.length;
-        let geometry = new THREE.BoxBufferGeometry(10, 10, 10);
-        let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        let mesh = new THREE.InstancedMesh(geometry, material, count);
+        await this.loadGeometry("./cabeco.json").then((geometry) => {
+            let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+            let mesh = new THREE.InstancedMesh(geometry, material, count);
+            console.log("mesh",mesh);
+            const dummy = new THREE.Object3D();
+            for (let i = 1; i < count; i++) {
+                let feature = geojson.features[i];
+                let coordX = feature.geometry.coordinates[0];
+                let coordY = feature.geometry.coordinates[1];
+                let units = utils.convertCoordinatesToUnits(coordX, coordY);
+                dummy.position.set(units[0] - this.center.x, 0, -(units[1] - this.center.y));
+                dummy.updateMatrix();
+                mesh.setMatrixAt(i++, dummy.matrix);
+            }
 
-        const dummy = new THREE.Object3D();
-        for (let i = 0; i < count; i++) {
-            let feature = geojson.features[i];
-            var centroid_obj = centroid(multiPolygon(feature.geometry.coordinates));
-            let coordX = centroid_obj.geometry.coordinates[0];
-            let coordY = centroid_obj.geometry.coordinates[1];
-            let units = utils.convertCoordinatesToUnits(coordX, coordY);
-            dummy.position.set(units[0] - this.center.x, 0, -(units[1] - this.center.y));
-            dummy.updateMatrix();
-            mesh.setMatrixAt(i++, dummy.matrix);
-        }
+            return mesh;
+        });
 
-        return mesh;
     }
 
     mergeGeometries(geometries) {
@@ -169,6 +172,26 @@ export default class TwinLoader {
         }
 
         return vertices;
+    }
+
+    loadGeometry(objectPath) {
+        return new Promise((resolve) => {
+            new THREE.BufferGeometryLoader().load(
+                objectPath,
+
+                // onLoad callback
+                (geometry) => {
+                    resolve(geometry);
+                },
+
+                undefined,
+
+                // onError callback
+                function (err) {
+                    console.log("An error happened", err);
+                }
+            );
+        });
     }
 
 }

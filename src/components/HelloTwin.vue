@@ -9,32 +9,6 @@
 import TwinView from "@/digitaltwin/TwinView";
 import Stats from "./Stats";
 
-/*
-const tiles = [
-  {
-    x: 124734,
-    y: 98102,
-    zoom: 18,
-  },
-  {
-    x: 124735,
-    y: 98102,
-    zoom: 18,
-  },
-  {
-    x: 124734,
-    y: 98103,
-    zoom: 18,
-  },
-  {
-    x: 124735,
-    y: 98103,
-    zoom: 18,
-  }
-];
-*/
-
-/*
 const terrainProperties = {
   depth: 0.1,
   altitude: -1,
@@ -42,7 +16,6 @@ const terrainProperties = {
     color: "#ffffff",
   },
 };
-*/
 
 const buildingsProperties = {
   depth: 10,
@@ -94,8 +67,7 @@ export default {
   },
   methods: {
     async loadBuildings() {
-      /*
-      fetch("https://triedeti.pt/data_geojson/terrain_v2.geojson")
+      fetch("https://triedeti.pt/data_geojson/mooring_bitt.geo.json")
         .then((response) => {
           return response.json();
         })
@@ -105,9 +77,8 @@ export default {
         .catch((err) => {
           console.log("Fetch Error", err);
         });
-        */
 
-      fetch("https://triedeti.pt/data_geojson/buildings_v2.geojson")
+       fetch("https://triedeti.pt/data_geojson/buildings_v2.geojson")
         .then((response) => {
           return response.json();
         })

@@ -6,6 +6,7 @@ import { UnitsUtils } from "./GeoThree/utils/UnitsUtils";
 import TwinEvent from "./TwinEvent";
 import TwinLoader from './TwinLoader'
 import * as utils from "./utils.js"
+import { getType } from "@turf/invariant"
 //import intersect from '@turf/intersect';
 //import { multiPolygon } from "@turf/helpers";
 //import { bbox } from '@turf/bbox';
@@ -91,29 +92,55 @@ export default class TwinView {
     }
 
     storeGeojsonLayer(id, geojson, properties) {
+        let type = getType(geojson.features[1]);
 
-        for (let feature of geojson.features) {
-            feature.loaded = false;
-            for (let j = 0; j < feature.geometry.coordinates.length; ++j) {
-                for (let k = 0; k < feature.geometry.coordinates[j].length; ++k) {
-                    let coordinates = feature.geometry.coordinates[j][k];
-                    for (let i = 0; i < coordinates.length; ++i) {
-                        let lon = coordinates[i][0];
-                        let lat = coordinates[i][1];
-                        let xy = this.coordsToTile(lon, lat, 18);
-                        let x = xy[0];
-                        let y = xy[1]
-                        let arrayaux = x + " " + y + " " + id;
+        if (type == "Point") {
+            for (let feature of geojson.features) {
+                if (getType(feature) == "Point") {
+                    feature.loaded = false;
 
-                        // key: x y layer
-                        // value: features of that layer and tile
+                    let coordinates = feature.geometry.coordinates;
 
-                        if (!this.tiles.has(arrayaux)) {
-                            this.tiles.set(arrayaux, []);
+                    // 18 is the zoom level
+                    let xy = this.coordsToTile(coordinates[0], coordinates[1], 18);
+
+                    let keyTile = xy[0] + " " + xy[1] + " " + id;
+
+                    // key: x y layer
+                    // value: features of that layer and tile
+
+                    if (!this.tiles.has(keyTile)) {
+                        this.tiles.set(keyTile, []);
+                    }
+                    let tile = this.tiles.get(keyTile);
+                    tile.push(feature);
+                    this.tiles.set(keyTile, tile);
+                }
+            }
+
+        } else {
+            for (let feature of geojson.features) {
+                feature.loaded = false;
+                for (let j = 0; j < feature.geometry.coordinates.length; ++j) {
+                    for (let k = 0; k < feature.geometry.coordinates[j].length; ++k) {
+                        let coordinates = feature.geometry.coordinates[j][k];
+                        for (let i = 0; i < coordinates.length; ++i) {
+
+                            // 18 is the zoom level
+                            let xy = this.coordsToTile(coordinates[i][0], coordinates[i][1], 18);
+
+                            let keyTile = xy[0] + " " + xy[1] + " " + id;
+
+                            // key: x y layer
+                            // value: features of that layer and tile
+
+                            if (!this.tiles.has(keyTile)) {
+                                this.tiles.set(keyTile, []);
+                            }
+                            let tile = this.tiles.get(keyTile);
+                            tile.push(feature);
+                            this.tiles.set(keyTile, tile);
                         }
-                        let tile = this.tiles.get(arrayaux);
-                        tile.push(feature);
-                        this.tiles.set(arrayaux, tile);
                     }
                 }
             }
@@ -121,7 +148,8 @@ export default class TwinView {
 
         this.layers.set(id, {
             "geojson": geojson,
-            "properties": properties
+            "properties": properties,
+            "type": type,
         });
 
     }
@@ -179,32 +207,27 @@ export default class TwinView {
     incrementalLoading(x, y) {
 
         if (!this.layers) return;
-
-        for (var [key, value] of this.layers.entries()) {
+        for (var [id, value] of this.layers.entries()) {
             let geojson = {
                 "type": "FeatureCollection",
                 "features": [],
             }
 
-            let first_part_key = x + " " + y;
-            let second_part_key = key;
-            let key_tiles = first_part_key + " " + second_part_key;
+            let key_tiles = x + " " + y + " " + id;
 
             if (this.tiles.has(key_tiles)) {
                 for (let i = 0; i < this.tiles.get(key_tiles).length; i++) {
                     let feature = this.tiles.get(key_tiles)[i];
                     if (!feature.loaded) {
-
                         geojson.features.push(feature);
                         feature.loaded = true;
-
                     }
                 }
             }
 
             if (geojson.features.length > 0) {
-                let mergedMeshes = this.loader.loadLayer(geojson, value.properties);
-                this.scene.add(mergedMeshes);
+                let mesh = this.loader.loadLayer(geojson, value.properties, value.type);
+                this.scene.add(mesh);
             }
         }
 
