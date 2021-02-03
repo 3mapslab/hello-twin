@@ -261,7 +261,9 @@ export default class TwinView {
                 for (let i = 0; i < value.length; ++i) {
                     this.scene.remove(value[i]);
                 }
+                this.newTiles.set(key, []);
             }
+
         }
 
     }
