@@ -7,17 +7,18 @@ import TwinEvent from "./TwinEvent";
 import TwinLoader from './TwinLoader'
 import * as utils from "./utils.js"
 import { getType } from "@turf/invariant"
-
+import { point } from "@turf/helpers"
+import * as turf from "@turf/turf"
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
-const tileLevel = 18;
+const tileLevel = 17;
 
 CameraControls.install({ THREE: THREE });
 //const far = 3500;
 
 export default class TwinView {
 
-    constructor(canvas, configs) {
+    constructor(canvas, configs, layerProps) {
         //Keep canvas and configs references
         this.canvas = canvas;
         this.configs = configs;
@@ -63,6 +64,11 @@ export default class TwinView {
 
         //Loader
         this.loader = new TwinLoader(this.coords, this.scene);
+
+        this.newTiles = new Map();
+
+        this.newLayers = layerProps;
+        console.log(this.newLayers)
     }
 
     initCamera() {
@@ -112,7 +118,7 @@ export default class TwinView {
 
         } else {
 
-            for(let feature of geojson.features) {
+            for (let feature of geojson.features) {
                 feature.loaded = false;
                 this.storeFeature(id, feature, feature.geometry.coordinates)
             }
@@ -145,7 +151,7 @@ export default class TwinView {
             return;
         }
 
-        for(let i = 0; i < coordinates.length; ++i) {
+        for (let i = 0; i < coordinates.length; ++i) {
             this.storeFeature(id, feature, coordinates[i])
         }
 
@@ -203,39 +209,77 @@ export default class TwinView {
 
     async incrementalLoading(x, y) {
 
-        if (!this.layers) return;
-        for (var [id, value] of this.layers.entries()) {
-            let geojson = {
-                "type": "FeatureCollection",
-                "features": [],
-            }
+        // Load current tile
+        for (let i = 0; i < this.newLayers.length; ++i) {
 
-            let key_tiles = x + " " + y + " " + id;
+            let url = `http://localhost:8123/${this.newLayers[i].url}/${tileLevel}/${x}/${y}.geojson`
 
-            if (this.tiles.has(key_tiles)) {
-                for (let i = 0; i < this.tiles.get(key_tiles).length; i++) {
-                    let feature = this.tiles.get(key_tiles)[i];
-                    if (!feature.loaded) {
-                        geojson.features.push(feature);
-                        feature.loaded = true;
+            await fetch(url)
+                .then((response) => { 
+                    return response.json();
+                })
+                .then(async (geojson) => {
+
+                    if (!geojson.features || geojson.features.length == 0) {
+                        return;
                     }
-                }
-            }
+                    
+                    let mesh = await this.loader.loadLayer(geojson, this.newLayers[i].properties);
+                    this.scene.add(mesh);
 
-            if (geojson.features.length > 0) {
-                let mesh = await this.loader.loadLayer(geojson, value.properties, value.type);
-                this.scene.add(mesh);
+                    let key = x + "," + y;
+                    if (!this.newTiles.has(key)) {
+                        this.newTiles.set(key, [mesh]);
+
+                    } else {
+                        let tile = this.newTiles.get(key);
+                        tile.push(mesh);
+                        this.newTiles.set(key,tile);
+                    }
+                });
+        }
+
+
+        this.removeFarawayTiles(x,y)
+
+    }
+
+    removeFarawayTiles(x,y) {
+        let lon = this.tile2long(x);
+        let lat = this.tile2lat(y);
+
+        let center = point([lon,lat]);
+        let buffered = turf.buffer(center, 1000, {units: 'meters'});
+        for (let [key, value] of this.newTiles.entries()) {
+
+            let lon2 = this.tile2long(key.split(",")[0])
+            let lat2 = this.tile2lat(key.split(",")[1])       
+            let point = turf.point([lon2,lat2])
+            let poly = turf.polygon(buffered.geometry.coordinates);
+            
+            if (!turf.booleanPointInPolygon(point,poly)) {
+                for (let i = 0; i < value.length; ++i) {
+                    this.scene.remove(value[i]);
+                }
             }
         }
 
+    }
+
+    tile2long(x) {
+        return (x/Math.pow(2,tileLevel)*360-180);
+    }
+
+    tile2lat(y) {
+        var n=Math.PI-2*Math.PI*y/Math.pow(2,tileLevel);
+        return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
     }
 
     loadTile(tile) {
         let zoom = tile.zoom;
         let x = tile.x;
         let y = tile.y;
-        if (zoom >= tileLevel) {
-            // var polygon = this.calcTilePolygon(zoom, x, y);
+        if (zoom == tileLevel) {
             this.incrementalLoading(x, y);
         }
     }
@@ -263,6 +307,7 @@ export default class TwinView {
 
         return geojson;
     }
+
     dispatch(eventName, data) {
         const event = this.events[eventName];
         if (event) {

@@ -8,7 +8,7 @@
 <script>
 import TwinView from "@/digitaltwin/TwinView";
 import Stats from "./Stats";
-
+/*
 const terrainProperties = {
   depth: 0.1,
   altitude: -1,
@@ -16,6 +16,7 @@ const terrainProperties = {
     color: "#ffffff",
   },
 };
+*/
 
 const buildingsProperties = {
   depth: 10,
@@ -33,6 +34,7 @@ const roadsProperties = {
   },
 };
 
+
 const gardensProperties = {
   depth: 0.2,
   altitude: 0.1,
@@ -41,13 +43,41 @@ const gardensProperties = {
   },
 };
 
-const parkProp = {
+const parkProperties = {
   depth: 0.2,
   altitude: 0.1,
   material: {
     color: "#808080",
   },
 };
+
+
+const layerProperties = [
+  
+  {
+    "url": "buildings",
+    "properties": buildingsProperties
+  },
+  {
+    "url": "gardens_v2",
+    "properties": gardensProperties
+  },
+  /*
+  {
+    "url": "mooring_bitt",
+    "properties": terrainProperties
+  },
+  */
+  {
+    "url": "roads_v2",
+    "properties": roadsProperties
+  },
+  {
+    "url": "parks_v2",
+    "properties": parkProperties
+  },
+  
+]
 
 export default {
   components: {
@@ -62,11 +92,12 @@ export default {
     const configs = {
       initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
     };
-    this.twinView = new TwinView(this.$refs.world, configs);
+    this.twinView = new TwinView(this.$refs.world, configs, layerProperties);
     await this.loadBuildings();
   },
   methods: {
     async loadBuildings() {
+      /*
       fetch("https://triedeti.pt/data_geojson/mooring_bitt.geo.json")
         .then((response) => {
           return response.json();
@@ -121,6 +152,9 @@ export default {
         .catch((err) => {
           console.log("Fetch Error", err);
         });
+        */
+
+
     },
   },
 };

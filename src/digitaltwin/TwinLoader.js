@@ -12,36 +12,37 @@ export default class TwinLoader {
     }
 
     //Load Layers
-    loadLayer(geojson, properties, geojsonType) {
+    loadLayer(geojson, properties) {
         if (geojson == null || geojson.features == null) return;
 
         var geo = utils.convertGeoJsonToWorldUnits(geojson);
         var shape = null;
         var geometries = [];
         var feature;
-
+        /*
         if (geojsonType == "Point") {
             return this.loadLayerInstancedMesh(geojson);
         } else {
-            for (feature of geo.features) {
-                feature.properties = Object.assign({}, properties, feature.properties);
-                shape = this.createShape(feature);
-                geometries.push(shape);
-            }
-
-            return this.mergeGeometries(geometries);
+            */
+        for (feature of geo.features) {
+            feature.properties = Object.assign({}, properties, feature.properties);
+            shape = this.createShape(feature);
+            geometries.push(shape);
         }
+
+        return this.mergeGeometries(geometries);
+        //}
     }
 
     async loadLayerInstancedMesh(geojson) {
         if (geojson == null || geojson.features == null) return;
 
         let count = geojson.features.length;
-        
+
         const geometry = await this.loadGeometry('./cabeco.json')
         let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
         let mesh = new THREE.InstancedMesh(geometry, material, count);
-    
+
         const dummy = new THREE.Object3D();
         for (let i = 1; i < count; i++) {
             let feature = geojson.features[i];
@@ -141,32 +142,36 @@ export default class TwinLoader {
                 var outerP = P[0];
             }
 
-            var p0 = new THREE.Vector2(outerP[0][0], outerP[0][1]);
-            for (let i = 1; i < outerP.length; ++i) {
+            // check if there is outer ring
+            if (outerP) {
+                var p0 = new THREE.Vector2(outerP[0][0], outerP[0][1]);
+                for (let i = 1; i < outerP.length; ++i) {
 
-                var p1 = new THREE.Vector2(outerP[i][0], outerP[i][1]);
-                vecs2.push(p0, p1);
-                p0 = p1;
-            }
-
-            var shape = new THREE.Shape(vecs2)
-
-            // iterate through holes
-            for (let i = 1; i < P.length; ++i) {
-
-                let hole = P[i];
-                let points = [];
-
-                for (let j = 0; j < hole.length; ++j) {
-                    points.push(new THREE.Vector2(hole[j][0], hole[j][1]))
+                    var p1 = new THREE.Vector2(outerP[i][0], outerP[i][1]);
+                    vecs2.push(p0, p1);
+                    p0 = p1;
                 }
 
-                let path = new THREE.Path(points);
-                shape.holes.push(path);
-            }
 
-            vertices.push(shape);
-            vecs2 = [];
+                var shape = new THREE.Shape(vecs2)
+
+                // iterate through holes
+                for (let i = 1; i < P.length; ++i) {
+
+                    let hole = P[i];
+                    let points = [];
+
+                    for (let j = 0; j < hole.length; ++j) {
+                        points.push(new THREE.Vector2(hole[j][0], hole[j][1]))
+                    }
+
+                    let path = new THREE.Path(points);
+                    shape.holes.push(path);
+                }
+
+                vertices.push(shape);
+                vecs2 = [];
+            }
         }
 
         return vertices;

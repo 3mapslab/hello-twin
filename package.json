@@ -9,10 +9,12 @@
   },
   "dependencies": {
     "@turf/bbox": "^6.3.0",
+    "@turf/buffer": "^6.3.0",
     "@turf/centroid": "^6.3.0",
     "@turf/helpers": "^6.3.0",
     "@turf/intersect": "^6.3.0",
     "@turf/invariant": "^6.3.0",
+    "@turf/turf": "^6.3.0",
     "camera-controls": "^1.25.3",
     "core-js": "^3.6.5",
     "geo-three": "0.0.4",
