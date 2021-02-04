@@ -256,8 +256,9 @@ export class MapView extends Mesh {
 	 */
 	fetchTile(zoom, x, y) {
 
-		//console.log(zoom + " " + x + " " + y);
-		this.fetchEvent.fire({"zoom": zoom, "x": x, "y": y});
+		if (zoom == 17 && x == 62368 && y == 49052)
+			console.log("Loaded 62368 49052");
+		this.fetchEvent.fire({ "zoom": zoom, "x": x, "y": y });
 		return this.provider.fetchTile(zoom, x, y);
 	}
 

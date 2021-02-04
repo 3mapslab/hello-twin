@@ -12,9 +12,10 @@ import * as turf from "@turf/turf"
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const tileLevel = 17;
+const removeDistance = 1000;
+
 
 CameraControls.install({ THREE: THREE });
-//const far = 3500;
 
 export default class TwinView {
 
@@ -215,7 +216,7 @@ export default class TwinView {
             let url = `http://localhost:8123/${this.newLayers[i].url}/${tileLevel}/${x}/${y}.geojson`
 
             await fetch(url)
-                .then((response) => { 
+                .then((response) => {
                     return response.json();
                 })
                 .then(async (geojson) => {
@@ -223,7 +224,7 @@ export default class TwinView {
                     if (!geojson.features || geojson.features.length == 0) {
                         return;
                     }
-                    
+
                     let mesh = await this.loader.loadLayer(geojson, this.newLayers[i].properties);
                     this.scene.add(mesh);
 
@@ -234,34 +235,42 @@ export default class TwinView {
                     } else {
                         let tile = this.newTiles.get(key);
                         tile.push(mesh);
-                        this.newTiles.set(key,tile);
+                        this.newTiles.set(key, tile);
                     }
                 });
         }
 
-
-        this.removeFarawayTiles(x,y)
-
+        this.removeFarawayTiles(x, y);
     }
 
-    removeFarawayTiles(x,y) {
+    removeFarawayTiles(x, y) {
         let lon = this.tile2long(x);
         let lat = this.tile2lat(y);
 
-        let center = point([lon,lat]);
-        let buffered = turf.buffer(center, 1000, {units: 'meters'});
+        let center = point([lon, lat]);
+        let buffered = turf.buffer(center, removeDistance, { units: 'meters' });
         for (let [key, value] of this.newTiles.entries()) {
 
-            let lon2 = this.tile2long(key.split(",")[0])
-            let lat2 = this.tile2lat(key.split(",")[1])       
-            let point = turf.point([lon2,lat2])
+            let x2 = key.split(",")[0];
+            let y2 = key.split(",")[1];
+            let lon2 = this.tile2long(x2)
+            let lat2 = this.tile2lat(y2)
+            let point = turf.point([lon2, lat2])
             let poly = turf.polygon(buffered.geometry.coordinates);
-            
-            if (!turf.booleanPointInPolygon(point,poly)) {
+
+            if (!turf.booleanPointInPolygon(point, poly)) {
                 for (let i = 0; i < value.length; ++i) {
                     this.scene.remove(value[i]);
                 }
                 this.newTiles.set(key, []);
+                this.map.traverse((child) => {
+                    if (child.x == x2 && child.y == y2 && child.level == tileLevel) {
+                        child.childrenCache = null;
+                        child.loadTexture = null;
+                        if (x2 == 62368 && y2 == 49052)
+                            console.log("Removed 62368 49052");
+                    }
+                })
             }
 
         }
@@ -269,12 +278,12 @@ export default class TwinView {
     }
 
     tile2long(x) {
-        return (x/Math.pow(2,tileLevel)*360-180);
+        return (x / Math.pow(2, tileLevel) * 360 - 180);
     }
 
     tile2lat(y) {
-        var n=Math.PI-2*Math.PI*y/Math.pow(2,tileLevel);
-        return (180/Math.PI*Math.atan(0.5*(Math.exp(n)-Math.exp(-n))));
+        var n = Math.PI - 2 * Math.PI * y / Math.pow(2, tileLevel);
+        return (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
     }
 
     loadTile(tile) {
