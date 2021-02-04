@@ -12,7 +12,7 @@ import * as turf from "@turf/turf"
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const tileLevel = 17;
-const removeDistance = 1000;
+const removeDistance = 1100;
 
 
 CameraControls.install({ THREE: THREE });
@@ -80,7 +80,7 @@ export default class TwinView {
             0.1,
             10000
         );
-        this.camera.position.set(0, 350, 0);
+        this.camera.position.set(0, 250, 0);
     }
 
     initRenderer() {
@@ -170,9 +170,13 @@ export default class TwinView {
         this.controls.verticalDragToForward = true;
         this.controls.dollyToCursor = false;
         //Inclination(Vertical Rotation)
-        this.controls.maxPolarAngle = Math.PI / 2.5;
+        this.controls.maxPolarAngle = Math.PI / 2.8;
+        this.controls.minPolarAngle = Math.PI / 4.5;
+        this.controls.polarAngle = Math.PI / 4.5;
         //Zoom
-        this.controls.maxDistance = 350;
+        this.controls.maxDistance = 300;
+        this.controls.minDistance = 0;
+
     }
 
     initMap() {
@@ -263,14 +267,7 @@ export default class TwinView {
                     this.scene.remove(value[i]);
                 }
                 this.newTiles.set(key, []);
-                this.map.traverse((child) => {
-                    if (child.x == x2 && child.y == y2 && child.level == tileLevel) {
-                        child.childrenCache = null;
-                        child.loadTexture = null;
-                        if (x2 == 62368 && y2 == 49052)
-                            console.log("Removed 62368 49052");
-                    }
-                })
+                this.map.childrenClear(x2,y2,tileLevel);
             }
 
         }

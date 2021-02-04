@@ -179,6 +179,16 @@ export class MapView extends Mesh {
 		});
 	}
 
+	childrenClear(x2, y2, tileLevel) {
+		this.traverse(function (child) {
+			if (child.x == x2 && child.y == y2 && child.level == tileLevel) {
+				child.parentNode.simplify();
+				child.parentNode.childrenCache = null;
+				child.parentNode.loadTexture = null;
+			}
+		});
+	}
+
 	/**
 	 * Ajust node configuration depending on the camera distance.
 	 *
@@ -255,9 +265,6 @@ export class MapView extends Mesh {
 	 * @param {number} y Tile y.
 	 */
 	fetchTile(zoom, x, y) {
-
-		if (zoom == 17 && x == 62368 && y == 49052)
-			console.log("Loaded 62368 49052");
 		this.fetchEvent.fire({ "zoom": zoom, "x": x, "y": y });
 		return this.provider.fetchTile(zoom, x, y);
 	}
