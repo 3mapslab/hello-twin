@@ -12,26 +12,26 @@ export default class TwinLoader {
     }
 
     //Load Layers
-    loadLayer(geojson, properties) {
+    loadLayer(geojson, properties, geojsonType) {
         if (geojson == null || geojson.features == null) return;
 
         var geo = utils.convertGeoJsonToWorldUnits(geojson);
         var shape = null;
         var geometries = [];
         var feature;
-        /*
+
         if (geojsonType == "Point") {
             return this.loadLayerInstancedMesh(geojson);
         } else {
-            */
-        for (feature of geo.features) {
-            feature.properties = Object.assign({}, properties, feature.properties);
-            shape = this.createShape(feature);
-            geometries.push(shape);
-        }
 
-        return this.mergeGeometries(geometries);
-        //}
+            for (feature of geo.features) {
+                feature.properties = Object.assign({}, properties, feature.properties);
+                shape = this.createShape(feature);
+                geometries.push(shape);
+            }
+
+            return this.mergeGeometries(geometries);
+        }
     }
 
     async loadLayerInstancedMesh(geojson) {
@@ -91,8 +91,6 @@ export default class TwinLoader {
         var shape3D = new THREE.ExtrudeBufferGeometry(shapearray, extrudeSettings);
         shape3D.translate(-this.center.x, -this.center.y, feature.properties.altitude);
 
-        //var material = new THREE.MeshPhongMaterial({ color: 0x372596 });
-
         // compute a color
         let color = new THREE.Color();
         let hue = THREE.MathUtils.lerp(0.7, 0.3, (Math.floor(Math.random() * 100)) / 100);
@@ -115,17 +113,6 @@ export default class TwinLoader {
         let normalized = true;
         let colorAttrib = new THREE.BufferAttribute(colors, itemSize, normalized);
         shape3D.setAttribute('color', colorAttrib);
-
-
-
-        /*var mesh = new THREE.Mesh(shape3D, material);
-    
-        mesh.matrixAutoUpdate = false;
-        mesh.receiveShadow = false;
-        mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
-        mesh.updateMatrix();
-    
-        shape3D.dispose();*/
 
         return shape3D;
     }
@@ -151,7 +138,6 @@ export default class TwinLoader {
                     vecs2.push(p0, p1);
                     p0 = p1;
                 }
-
 
                 var shape = new THREE.Shape(vecs2)
 

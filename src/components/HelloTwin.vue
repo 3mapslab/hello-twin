@@ -8,7 +8,7 @@
 <script>
 import TwinView from "@/digitaltwin/TwinView";
 import Stats from "./Stats";
-/*
+
 const terrainProperties = {
   depth: 0.1,
   altitude: -1,
@@ -16,7 +16,6 @@ const terrainProperties = {
     color: "#ffffff",
   },
 };
-*/
 
 const buildingsProperties = {
   depth: 10,
@@ -34,7 +33,6 @@ const roadsProperties = {
   },
 };
 
-
 const gardensProperties = {
   depth: 0.2,
   altitude: 0.1,
@@ -51,33 +49,28 @@ const parkProperties = {
   },
 };
 
-
 const layerProperties = [
-  
   {
-    "url": "buildings",
-    "properties": buildingsProperties
+    url: "buildings",
+    properties: buildingsProperties,
   },
   {
-    "url": "gardens_v2",
-    "properties": gardensProperties
-  },
-  /*
-  {
-    "url": "mooring_bitt",
-    "properties": terrainProperties
-  },
-  */
-  {
-    "url": "roads_v2",
-    "properties": roadsProperties
+    url: "gardens_v2",
+    properties: gardensProperties,
   },
   {
-    "url": "parks_v2",
-    "properties": parkProperties
+    url: "mooring_bitt",
+    properties: terrainProperties,
   },
-  
-]
+  {
+    url: "roads_v2",
+    properties: roadsProperties,
+  },
+  {
+    url: "parks_v2",
+    properties: parkProperties,
+  },
+];
 
 export default {
   components: {
@@ -153,8 +146,6 @@ export default {
           console.log("Fetch Error", err);
         });
         */
-
-
     },
   },
 };

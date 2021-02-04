@@ -6,7 +6,6 @@ import { UnitsUtils } from "./GeoThree/utils/UnitsUtils";
 import TwinEvent from "./TwinEvent";
 import TwinLoader from './TwinLoader'
 import * as utils from "./utils.js"
-import { getType } from "@turf/invariant"
 import { point } from "@turf/helpers"
 import * as turf from "@turf/turf"
 
@@ -60,16 +59,13 @@ export default class TwinView {
         window.addEventListener('resize', this.onResize.bind(this), false);
         this.animate();
 
-        this.layers = new Map();
-        this.tiles = new Map();
-
         //Loader
         this.loader = new TwinLoader(this.coords, this.scene);
 
-        this.newTiles = new Map();
+        this.tiles = new Map();
 
-        this.newLayers = layerProps;
-        console.log(this.newLayers)
+        this.layers = layerProps;
+        console.log(this.layers)
     }
 
     initCamera() {
@@ -92,70 +88,6 @@ export default class TwinView {
         });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(window.devicePixelRatio);
-    }
-
-    storeGeojsonLayer(id, geojson, properties) {
-        let type = getType(geojson.features[1]);
-
-        if (type == "Point") {
-            for (let feature of geojson.features) {
-                if (getType(feature) == "Point") {
-                    feature.loaded = false;
-
-                    let coordinates = feature.geometry.coordinates;
-                    let xy = this.coordsToTile(coordinates[0], coordinates[1], tileLevel);
-                    let keyTile = xy[0] + " " + xy[1] + " " + id;
-
-                    // key: x y layer
-                    // value: features of that layer and tile
-                    if (!this.tiles.has(keyTile)) {
-                        this.tiles.set(keyTile, []);
-                    }
-                    let tile = this.tiles.get(keyTile);
-                    tile.push(feature);
-                    this.tiles.set(keyTile, tile);
-                }
-            }
-
-        } else {
-
-            for (let feature of geojson.features) {
-                feature.loaded = false;
-                this.storeFeature(id, feature, feature.geometry.coordinates)
-            }
-        }
-
-        this.layers.set(id, {
-            "geojson": geojson,
-            "properties": properties,
-            "type": type,
-        });
-    }
-
-    // Iterate recursively through all coordinates in array with unknown depth
-    storeFeature(id, feature, coordinates) {
-
-        if (coordinates[0][0] == null) {
-
-            let xy = this.coordsToTile(coordinates[0], coordinates[1], tileLevel);
-            let keyTile = xy[0] + " " + xy[1] + " " + id;
-
-            // key: x y layer
-            // value: features of that layer and tile
-
-            if (!this.tiles.has(keyTile)) {
-                this.tiles.set(keyTile, []);
-            }
-            let tile = this.tiles.get(keyTile);
-            tile.push(feature);
-            this.tiles.set(keyTile, tile);
-            return;
-        }
-
-        for (let i = 0; i < coordinates.length; ++i) {
-            this.storeFeature(id, feature, coordinates[i])
-        }
-
     }
 
     initLights() {
@@ -215,9 +147,9 @@ export default class TwinView {
     async incrementalLoading(x, y) {
 
         // Load current tile
-        for (let i = 0; i < this.newLayers.length; ++i) {
+        for (let i = 0; i < this.layers.length; ++i) {
 
-            let url = `http://localhost:8123/${this.newLayers[i].url}/${tileLevel}/${x}/${y}.geojson`
+            let url = `http://localhost:8123/${this.layers[i].url}/${tileLevel}/${x}/${y}.geojson`
 
             await fetch(url)
                 .then((response) => {
@@ -225,21 +157,22 @@ export default class TwinView {
                 })
                 .then(async (geojson) => {
 
-                    if (!geojson.features || geojson.features.length == 0) {
+                    if (!geojson || !geojson.features || geojson.features.length == 0) {
                         return;
                     }
-
-                    let mesh = await this.loader.loadLayer(geojson, this.newLayers[i].properties);
+                    
+                    let geojsonType = turf.getType(geojson.features[0]);
+                    let mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, geojsonType);
                     this.scene.add(mesh);
 
                     let key = x + "," + y;
-                    if (!this.newTiles.has(key)) {
-                        this.newTiles.set(key, [mesh]);
+                    if (!this.tiles.has(key)) {
+                        this.tiles.set(key, [mesh]);
 
                     } else {
-                        let tile = this.newTiles.get(key);
+                        let tile = this.tiles.get(key);
                         tile.push(mesh);
-                        this.newTiles.set(key, tile);
+                        this.tiles.set(key, tile);
                     }
                 });
         }
@@ -253,7 +186,7 @@ export default class TwinView {
 
         let center = point([lon, lat]);
         let buffered = turf.buffer(center, removeDistance, { units: 'meters' });
-        for (let [key, value] of this.newTiles.entries()) {
+        for (let [key, value] of this.tiles.entries()) {
 
             let x2 = key.split(",")[0];
             let y2 = key.split(",")[1];
@@ -266,8 +199,8 @@ export default class TwinView {
                 for (let i = 0; i < value.length; ++i) {
                     this.scene.remove(value[i]);
                 }
-                this.newTiles.set(key, []);
-                this.map.childrenClear(x2,y2,tileLevel);
+                this.tiles.set(key, []);
+                this.map.childrenClear(x2, y2, tileLevel);
             }
 
         }
