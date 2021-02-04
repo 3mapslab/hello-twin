@@ -21,7 +21,7 @@ export default class TwinLoader {
         var feature;
 
         if (geojsonType == "Point") {
-            return this.loadLayerInstancedMesh(geojson);
+            return this.loadLayerInstancedMesh(geojson, properties);
         } else {
 
             for (feature of geo.features) {
@@ -30,17 +30,29 @@ export default class TwinLoader {
                 geometries.push(shape);
             }
 
-            return this.mergeGeometries(geometries);
+            return this.mergeGeometries(geometries, properties);
         }
     }
 
-    async loadLayerInstancedMesh(geojson) {
+    async loadLayerInstancedMesh(geojson, properties) {
         if (geojson == null || geojson.features == null) return;
 
         let count = geojson.features.length;
 
         const geometry = await this.loadGeometry('./cabeco.json')
-        let material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        let material = new THREE.MeshBasicMaterial({
+            'color': properties.material.color,
+            'polygonOffset': true,
+            'polygonOffsetUnits': -1 * offset,
+            'polygonOffsetFactor': -1,
+        });
+
+        if (properties.material.texture) {
+            let text = new THREE.TextureLoader().load(properties.material.texture);
+            material.color = null;
+            material.map = text;
+        }
+
         let mesh = new THREE.InstancedMesh(geometry, material, count);
 
         const dummy = new THREE.Object3D();
@@ -56,17 +68,24 @@ export default class TwinLoader {
         return mesh;
     }
 
-    mergeGeometries(geometries) {
+    mergeGeometries(geometries, properties) {
         var mergedGeometries = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
 
         ++offset;
 
         let material = new THREE.MeshBasicMaterial({
-            vertexColors: true,
-            polygonOffset: true,
-            polygonOffsetUnits: -1 * offset,
-            polygonOffsetFactor: -1,
+            'color': properties.material.color,
+            'polygonOffset': true,
+            'polygonOffsetUnits': -1 * offset,
+            'polygonOffsetFactor': -1,
         });
+
+        if (properties.material.texture) {
+            let text = new THREE.TextureLoader().load(properties.material.texture);
+            material.color = null;
+            material.map = text;
+        }
+
         var mergedMesh = new THREE.Mesh(mergedGeometries, material);
         mergedMesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
         mergedMesh.updateMatrix();
@@ -90,29 +109,6 @@ export default class TwinLoader {
 
         var shape3D = new THREE.ExtrudeBufferGeometry(shapearray, extrudeSettings);
         shape3D.translate(-this.center.x, -this.center.y, feature.properties.altitude);
-
-        // compute a color
-        let color = new THREE.Color();
-        let hue = THREE.MathUtils.lerp(0.7, 0.3, (Math.floor(Math.random() * 100)) / 100);
-        let saturation = 1;
-        let lightness = THREE.MathUtils.lerp(0.4, 1.0, (Math.floor(Math.random() * 100)) / 100);
-        color.setHSL(hue, saturation, lightness);
-        // get the colors as an array of values from 0 to 255
-        let rgb = color.toArray().map(v => v * 255);
-
-        // make an array to store colors for each vertex
-        let numVerts = shape3D.getAttribute('position').count;
-        let itemSize = 3;  // r, g, b
-        let colors = new Uint8Array(itemSize * numVerts);
-
-        // copy the color into the colors array for each vertex
-        colors.forEach((v, ndx) => {
-            colors[ndx] = rgb[ndx % 3];
-        });
-
-        let normalized = true;
-        let colorAttrib = new THREE.BufferAttribute(colors, itemSize, normalized);
-        shape3D.setAttribute('color', colorAttrib);
 
         return shape3D;
     }

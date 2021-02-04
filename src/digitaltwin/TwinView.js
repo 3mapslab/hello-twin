@@ -65,7 +65,6 @@ export default class TwinView {
         this.tiles = new Map();
 
         this.layers = layerProps;
-        console.log(this.layers)
     }
 
     initCamera() {
@@ -160,7 +159,7 @@ export default class TwinView {
                     if (!geojson || !geojson.features || geojson.features.length == 0) {
                         return;
                     }
-                    
+
                     let geojsonType = turf.getType(geojson.features[0]);
                     let mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, geojsonType);
                     this.scene.add(mesh);

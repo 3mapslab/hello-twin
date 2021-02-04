@@ -14,6 +14,7 @@ const terrainProperties = {
   altitude: -1,
   material: {
     color: "#ffffff",
+    texture: "./plainroof.jpg",
   },
 };
 
@@ -21,7 +22,8 @@ const buildingsProperties = {
   depth: 10,
   altitude: 0.1,
   material: {
-    color: "#6495ed",
+    color: "#ff0000",
+    texture: "./building.png",
   },
 };
 
@@ -37,7 +39,8 @@ const gardensProperties = {
   depth: 0.2,
   altitude: 0.1,
   material: {
-    color: "#008000",
+    color: "#32CD32",
+    texture: "./garden.jpg",
   },
 };
 
@@ -45,7 +48,7 @@ const parkProperties = {
   depth: 0.2,
   altitude: 0.1,
   material: {
-    color: "#808080",
+    color: "#6B6B6B",
   },
 };
 
@@ -86,67 +89,8 @@ export default {
       initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
     };
     this.twinView = new TwinView(this.$refs.world, configs, layerProperties);
-    await this.loadBuildings();
   },
   methods: {
-    async loadBuildings() {
-      /*
-      fetch("https://triedeti.pt/data_geojson/mooring_bitt.geo.json")
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          this.twinView.storeGeojsonLayer(1, data, terrainProperties);
-        })
-        .catch((err) => {
-          console.log("Fetch Error", err);
-        });
-
-       fetch("https://triedeti.pt/data_geojson/buildings.geojson")
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          this.twinView.storeGeojsonLayer(2, data, buildingsProperties);
-        })
-        .catch((err) => {
-          console.log("Fetch Error", err);
-        });
-
-      fetch("https://triedeti.pt/data_geojson/parks_v2.geojson")
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          this.twinView.storeGeojsonLayer(3, data, parkProp);
-        })
-        .catch((err) => {
-          console.log("Fetch Error", err);
-        });
-
-      fetch("https://triedeti.pt/data_geojson/gardens_v2.geojson")
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          this.twinView.storeGeojsonLayer(4, data, gardensProperties);
-        })
-        .catch((err) => {
-          console.log("Fetch Error", err);
-        });
-
-      fetch("https://triedeti.pt/data_geojson/roads_v2.geojson")
-        .then((response) => {
-          return response.json();
-        })
-        .then((data) => {
-          this.twinView.storeGeojsonLayer(5, data, roadsProperties);
-        })
-        .catch((err) => {
-          console.log("Fetch Error", err);
-        });
-        */
-    },
   },
 };
 </script>
