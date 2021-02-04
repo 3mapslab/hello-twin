@@ -135,6 +135,7 @@ export default class TwinView {
     animate() {
         requestAnimationFrame(this.animate.bind(this));
         this.render();
+        this.renderer.renderLists.dispose();
     }
 
     render() {
@@ -173,6 +174,9 @@ export default class TwinView {
                         tile.push(mesh);
                         this.tiles.set(key, tile);
                     }
+
+                    mesh.geometry.dispose();
+                    mesh.material.dispose();
                 });
         }
 
@@ -196,6 +200,8 @@ export default class TwinView {
 
             if (!turf.booleanPointInPolygon(point, poly)) {
                 for (let i = 0; i < value.length; ++i) {
+                    value[i].geometry.dispose();
+                    value[i].material.dispose();
                     this.scene.remove(value[i]);
                 }
                 this.tiles.set(key, []);

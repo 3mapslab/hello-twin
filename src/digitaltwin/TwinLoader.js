@@ -28,6 +28,7 @@ export default class TwinLoader {
                 feature.properties = Object.assign({}, properties, feature.properties);
                 shape = this.createShape(feature);
                 geometries.push(shape);
+                shape.dispose();
             }
 
             return this.mergeGeometries(geometries, properties);
@@ -65,6 +66,9 @@ export default class TwinLoader {
             dummy.updateMatrix();
             mesh.setMatrixAt(i++, dummy.matrix);
         }
+
+        mesh.geometry.dispose();
+        mesh.material.dispose();
         return mesh;
     }
 
@@ -89,6 +93,9 @@ export default class TwinLoader {
         var mergedMesh = new THREE.Mesh(mergedGeometries, material);
         mergedMesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
         mergedMesh.updateMatrix();
+
+        mergedMesh.geometry.dispose();
+        mergedMesh.material.dispose();
 
         return mergedMesh;
     }
