@@ -87,9 +87,9 @@ export default class TwinLoader {
         if (properties.material.texture) {
             let text = new THREE.TextureLoader().load(properties.material.texture);
             material.color = null;
-            text.wrapS = THREE.RepeatWrapping;
-            text.wrapT = THREE.RepeatWrapping;
+            text.wrapS = text.wrapT = THREE.RepeatWrapping;
             text.flipY = false;
+            text.minFilter = THREE.LinearFilter;
             material.map = text;
         }
 
@@ -116,9 +116,10 @@ export default class TwinLoader {
 
         let repeatValX = width / textureSize;
         let repeatValY = height / textureSize;
-        console.log(repeatValX, repeatValY);
 
-        /*
+        console.log("x", repeatValX)
+        console.log("y", repeatValY)
+
         if (repeatValX < 0.1) {
             repeatValX *= 10;
         } else if (repeatValX > 0.45) {
@@ -127,8 +128,7 @@ export default class TwinLoader {
         if (repeatValY < 0.1) {
             repeatValY *= 10;
         }
-        */
-
+        
         mesh.material.map.repeat.set(0.2, 0.2);
     }
 
