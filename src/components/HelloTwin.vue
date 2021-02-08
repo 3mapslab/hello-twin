@@ -9,13 +9,14 @@
 import TwinView from "@/digitaltwin/TwinView";
 import Stats from "./Stats";
 
-const terrainProperties = {
+const mooringBitsProperties = {
   depth: 0.1,
   altitude: -1,
   material: {
     color: "#ffffff",
     texture: "./plainroof.jpg",
   },
+  model: "./cabeco.json"
 };
 
 const buildingsProperties = {
@@ -63,7 +64,7 @@ const layerProperties = [
   },
   {
     url: "mooring_bitt",
-    properties: terrainProperties,
+    properties: mooringBitsProperties,
   },
   {
     url: "roads_v2",

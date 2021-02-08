@@ -13,7 +13,6 @@ const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9
 const tileLevel = 17;
 const removeDistance = 1100;
 
-
 CameraControls.install({ THREE: THREE });
 
 export default class TwinView {
@@ -101,11 +100,11 @@ export default class TwinView {
         this.controls.verticalDragToForward = true;
         this.controls.dollyToCursor = false;
         //Inclination(Vertical Rotation)
-        this.controls.maxPolarAngle = Math.PI / 2.8;
+        this.controls.maxPolarAngle = Math.PI / 3.2;
         this.controls.minPolarAngle = Math.PI / 4.5;
         this.controls.polarAngle = Math.PI / 4.5;
         //Zoom
-        this.controls.maxDistance = 300;
+        this.controls.maxDistance = 250;
         this.controls.minDistance = 0;
 
     }
@@ -163,6 +162,7 @@ export default class TwinView {
 
                     let geojsonType = turf.getType(geojson.features[0]);
                     let mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, geojsonType);
+
                     this.scene.add(mesh);
 
                     let key = x + "," + y;

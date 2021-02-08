@@ -40,7 +40,7 @@ export default class TwinLoader {
 
         let count = geojson.features.length;
 
-        const geometry = await this.loadGeometry('./cabeco.json')
+        const geometry = await this.loadGeometry(properties.model);
         let material = new THREE.MeshBasicMaterial({
             'color': properties.material.color,
             'polygonOffset': true,
@@ -87,6 +87,9 @@ export default class TwinLoader {
         if (properties.material.texture) {
             let text = new THREE.TextureLoader().load(properties.material.texture);
             material.color = null;
+            text.wrapS = THREE.RepeatWrapping;
+            text.wrapT = THREE.RepeatWrapping;
+            text.flipY = false;
             material.map = text;
         }
 
@@ -94,10 +97,39 @@ export default class TwinLoader {
         mergedMesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
         mergedMesh.updateMatrix();
 
+        if (properties.material.texture) this.adjustTextureSideRepeat(mergedMesh, 256);
+
         mergedMesh.geometry.dispose();
         mergedMesh.material.dispose();
 
         return mergedMesh;
+    }
+
+    adjustTextureSideRepeat(mesh, textureSize) {
+
+        mesh.geometry.computeBoundingBox();
+        let max = mesh.geometry.boundingBox.max;
+        let min = mesh.geometry.boundingBox.min;
+
+        let height = max.z - min.z;
+        let width = max.x - min.x;
+
+        let repeatValX = width / textureSize;
+        let repeatValY = height / textureSize;
+        console.log(repeatValX, repeatValY);
+
+        /*
+        if (repeatValX < 0.1) {
+            repeatValX *= 10;
+        } else if (repeatValX > 0.45) {
+            repeatValX /= 2;
+        }
+        if (repeatValY < 0.1) {
+            repeatValY *= 10;
+        }
+        */
+
+        mesh.material.map.repeat.set(0.2, 0.2);
     }
 
     createShape(feature) {
@@ -112,7 +144,6 @@ export default class TwinLoader {
             bevelSize: 0,
             bevelThickness: 1
         };
-
 
         var shape3D = new THREE.ExtrudeBufferGeometry(shapearray, extrudeSettings);
         shape3D.translate(-this.center.x, -this.center.y, feature.properties.altitude);
