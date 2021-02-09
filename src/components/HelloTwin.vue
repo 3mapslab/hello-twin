@@ -61,6 +61,18 @@ const containersProperties = {
   },
 }
 
+/*
+const threesProperties = {
+  depth: 0.1,
+  altitude: -1,
+  material: {
+    color: "#ffffff",
+    texture: "./plainroof.jpg",
+  },
+  model: "./lowpolytreegltf.glb"
+}
+*/
+
 const layerProperties = [
   {
     url: "buildings",
@@ -86,6 +98,14 @@ const layerProperties = [
     url:"containers_xyz",
     properties: containersProperties,
   },
+  {
+    url:"elementos_arboreos",
+    properties: mooringBitsProperties
+  },/*
+  {
+    url:"contentores_complexos",
+    properties: containersProperties,
+  },*/
 ];
 
 export default {

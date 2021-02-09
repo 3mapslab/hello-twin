@@ -176,7 +176,7 @@ export default class TwinView {
                         this.tiles.set(key, tile);
                     }
 
-                    mesh.geometry.dispose();
+                    //mesh.geometry.dispose();
                     //mesh.material.dispose();
                 });
         }
