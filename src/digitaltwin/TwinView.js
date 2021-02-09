@@ -10,8 +10,8 @@ import { point } from "@turf/helpers"
 import * as turf from "@turf/turf"
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
-const tileLevel = 17;
-const removeDistance = 1100;
+const tileLevel = 18;
+const removeDistance = 1000;
 
 CameraControls.install({ THREE: THREE });
 
@@ -183,7 +183,7 @@ export default class TwinView {
         this.removeFarawayTiles(x, y);
     }
 
-    removeFarawayTiles(x, y) {
+    async removeFarawayTiles(x, y) {
         let lon = this.tile2long(x);
         let lat = this.tile2lat(y);
 
@@ -205,7 +205,7 @@ export default class TwinView {
                     this.scene.remove(value[i]);
                 }
                 this.tiles.set(key, []);
-                this.map.childrenClear(x2, y2, tileLevel);
+                await this.map.childrenClear(x2, y2);
             }
 
         }

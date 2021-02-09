@@ -179,12 +179,13 @@ export class MapView extends Mesh {
 		});
 	}
 
-	childrenClear(x2, y2, tileLevel) {
+	childrenClear(x2, y2) {
 		this.traverse(function (child) {
-			if (child.x == x2 && child.y == y2 && child.level == tileLevel) {
-				child.parentNode.simplify();
-				child.parentNode.childrenCache = null;
-				child.parentNode.loadTexture = null;
+			if (child.x == x2 && child.y == y2) {
+				child.parentNode.parentNode.parentNode.simplify();
+				child.parentNode.parentNode.parentNode.childrenCache = null;
+				child.parentNode.parentNode.parentNode.loadTexture = null;
+				
 			}
 		});
 	}

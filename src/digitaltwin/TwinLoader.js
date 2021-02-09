@@ -117,9 +117,6 @@ export default class TwinLoader {
         let repeatValX = width / textureSize;
         let repeatValY = height / textureSize;
 
-        console.log("x", repeatValX)
-        console.log("y", repeatValY)
-
         if (repeatValX < 0.1) {
             repeatValX *= 10;
         } else if (repeatValX > 0.45) {
@@ -129,7 +126,7 @@ export default class TwinLoader {
             repeatValY *= 10;
         }
         
-        mesh.material.map.repeat.set(0.2, 0.2);
+        mesh.material.map.repeat.set(0.05, 0.2);
     }
 
     createShape(feature) {
