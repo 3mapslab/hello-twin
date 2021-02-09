@@ -61,17 +61,15 @@ const containersProperties = {
   },
 }
 
-/*
-const threesProperties = {
+const temporaryTreesProperties = {
   depth: 0.1,
   altitude: -1,
   material: {
     color: "#ffffff",
-    texture: "./plainroof.jpg",
+    texture: "./bush.png",
   },
-  model: "./lowpolytreegltf.glb"
+  model: "./cabeco.json",
 }
-*/
 
 const layerProperties = [
   {
@@ -100,7 +98,7 @@ const layerProperties = [
   },
   {
     url:"elementos_arboreos",
-    properties: mooringBitsProperties
+    properties: temporaryTreesProperties
   },/*
   {
     url:"contentores_complexos",
