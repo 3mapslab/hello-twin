@@ -41,7 +41,20 @@ export default class TwinLoader {
 
         let count = geojson.features.length;
 
-        const geometry = await this.loadGeometry(properties.model);
+        var boxWidth = 6.06;
+        var boxHeight = 2.6;
+        var boxDepth = 2.44;
+
+        var geometry;
+        if (properties.model) geometry = await this.loadGeometry(properties.model);
+        else {
+            geometry = new THREE.BoxBufferGeometry(
+                boxWidth,
+                boxHeight,
+                boxDepth
+            );
+        }
+
         let material = new THREE.MeshBasicMaterial({
             'color': properties.material.color,
             'polygonOffset': true,
@@ -62,8 +75,12 @@ export default class TwinLoader {
             let feature = geojson.features[i];
             let coordX = feature.geometry.coordinates[0];
             let coordY = feature.geometry.coordinates[1];
+            let coordZ = 0;
+            if (feature.properties.Z) coordZ = feature.properties.Z * 4;
+            console.log(coordZ)
             let units = utils.convertCoordinatesToUnits(coordX, coordY);
-            dummy.position.set(units[0] - this.center.x, 0, -(units[1] - this.center.y));
+            dummy.position.set(units[0] - this.center.x, coordZ, -(units[1] - this.center.y));
+            dummy.rotation.set(0, Math.PI / 4.5, 0);
             dummy.updateMatrix();
             mesh.setMatrixAt(i++, dummy.matrix);
         }

@@ -53,6 +53,14 @@ const parkProperties = {
   },
 };
 
+const containersProperties = {
+  depth: 0.2,
+  altitude: 0.1,
+  material: {
+    color: "blue",
+  },
+}
+
 const layerProperties = [
   {
     url: "buildings",
@@ -73,6 +81,10 @@ const layerProperties = [
   {
     url: "parks_v2",
     properties: parkProperties,
+  },
+  {
+    url:"containers_xyz",
+    properties: containersProperties,
   },
 ];
 
