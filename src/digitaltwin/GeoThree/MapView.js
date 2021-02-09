@@ -185,7 +185,6 @@ export class MapView extends Mesh {
 				child.parentNode.parentNode.parentNode.simplify();
 				child.parentNode.parentNode.parentNode.childrenCache = null;
 				child.parentNode.parentNode.parentNode.loadTexture = null;
-				
 			}
 		});
 	}

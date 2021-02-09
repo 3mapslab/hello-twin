@@ -18,21 +18,27 @@ export default class TwinLoader {
 
         var geo = utils.convertGeoJsonToWorldUnits(geojson);
         var shape = null;
-        var geometries = [];
         var feature;
 
         if (geojsonType == "Point") {
             return this.loadLayerInstancedMesh(geojson, properties);
         } else {
 
+            let meshesArray = [];
+
             for (feature of geo.features) {
                 feature.properties = Object.assign({}, properties, feature.properties);
                 shape = this.createShape(feature);
-                geometries.push(shape);
+
+                let mesh = this.createMeshFromShape(shape, properties);
+                meshesArray.push(mesh)
+
                 shape.dispose();
             }
 
-            return this.mergeGeometries(geometries, properties);
+            // return this.mergeGeometries(geometries, properties);
+
+            return meshesArray;
         }
     }
 
@@ -77,7 +83,6 @@ export default class TwinLoader {
             let coordY = feature.geometry.coordinates[1];
             let coordZ = 0;
             if (feature.properties.Z) coordZ = feature.properties.Z * 4;
-            console.log(coordZ)
             let units = utils.convertCoordinatesToUnits(coordX, coordY);
             dummy.position.set(units[0] - this.center.x, coordZ, -(units[1] - this.center.y));
             dummy.rotation.set(0, Math.PI / 4.5, 0);
@@ -121,6 +126,45 @@ export default class TwinLoader {
         mergedMesh.material.dispose();
 
         return mergedMesh;
+    }
+
+    createMeshFromShape(geometry, properties) {
+        ++offset;
+        console.log(properties)
+        let material = [ new THREE.MeshBasicMaterial({
+            'color': "red",
+            'polygonOffset': true,
+            'polygonOffsetUnits': -1 * offset,
+            'polygonOffsetFactor': -1,
+        }),
+        new THREE.MeshBasicMaterial({
+            'color': "yellow",
+            'polygonOffset': true,
+            'polygonOffsetUnits': -1 * offset,
+            'polygonOffsetFactor': -1,
+        })];
+
+        /*
+        if (properties.material.texture) {
+            let text = new THREE.TextureLoader().load(properties.material.texture);
+            material.color = null;
+            text.wrapS = text.wrapT = THREE.RepeatWrapping;
+            text.flipY = false;
+            text.minFilter = THREE.LinearFilter;
+            material.map = text;
+        }
+        */
+
+        var mesh = new THREE.Mesh(geometry, material);
+        mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
+        mesh.updateMatrix();
+
+        //if (properties.material.texture) this.adjustTextureSideRepeat(mesh, 256);
+
+        mesh.geometry.dispose();
+        //mesh.material.dispose();
+
+        return mesh;
     }
 
     adjustTextureSideRepeat(mesh, textureSize) {
