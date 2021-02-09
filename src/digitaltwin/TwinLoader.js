@@ -18,27 +18,21 @@ export default class TwinLoader {
 
         var geo = utils.convertGeoJsonToWorldUnits(geojson);
         var shape = null;
+        var geometries = [];
         var feature;
 
         if (geojsonType == "Point") {
             return this.loadLayerInstancedMesh(geojson, properties);
         } else {
 
-            let meshesArray = [];
-
             for (feature of geo.features) {
                 feature.properties = Object.assign({}, properties, feature.properties);
                 shape = this.createShape(feature);
-
-                let mesh = this.createMeshFromShape(shape, properties);
-                meshesArray.push(mesh)
-
+                geometries.push(shape);
                 shape.dispose();
             }
 
-            // return this.mergeGeometries(geometries, properties);
-
-            return meshesArray;
+            return this.mergeGeometries(geometries, properties);
         }
     }
 
@@ -126,45 +120,6 @@ export default class TwinLoader {
         mergedMesh.material.dispose();
 
         return mergedMesh;
-    }
-
-    createMeshFromShape(geometry, properties) {
-        ++offset;
-        console.log(properties)
-        let material = [ new THREE.MeshBasicMaterial({
-            'color': "red",
-            'polygonOffset': true,
-            'polygonOffsetUnits': -1 * offset,
-            'polygonOffsetFactor': -1,
-        }),
-        new THREE.MeshBasicMaterial({
-            'color': "yellow",
-            'polygonOffset': true,
-            'polygonOffsetUnits': -1 * offset,
-            'polygonOffsetFactor': -1,
-        })];
-
-        /*
-        if (properties.material.texture) {
-            let text = new THREE.TextureLoader().load(properties.material.texture);
-            material.color = null;
-            text.wrapS = text.wrapT = THREE.RepeatWrapping;
-            text.flipY = false;
-            text.minFilter = THREE.LinearFilter;
-            material.map = text;
-        }
-        */
-
-        var mesh = new THREE.Mesh(geometry, material);
-        mesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
-        mesh.updateMatrix();
-
-        //if (properties.material.texture) this.adjustTextureSideRepeat(mesh, 256);
-
-        mesh.geometry.dispose();
-        //mesh.material.dispose();
-
-        return mesh;
     }
 
     adjustTextureSideRepeat(mesh, textureSize) {

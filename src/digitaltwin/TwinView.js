@@ -162,22 +162,22 @@ export default class TwinView {
                     }
 
                     let geojsonType = turf.getType(geojson.features[0]);
-                    //let mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, geojsonType);
+                    let mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, geojsonType);
 
-                    // aqui retorna array e inserir cada mesh do array
-                    let meshes = await this.loader.loadLayer(geojson, this.layers[i].properties, geojsonType);
-
-                    for (let i = 0; i < meshes.length; i++) this.scene.add(meshes[i]);
+                    this.scene.add(mesh);
 
                     let key = x + "," + y;
                     if (!this.tiles.has(key)) {
-                        this.tiles.set(key, [meshes]);
+                        this.tiles.set(key, [mesh]);
 
                     } else {
                         let tile = this.tiles.get(key);
-                        tile.push(meshes);
+                        tile.push(mesh);
                         this.tiles.set(key, tile);
                     }
+
+                    mesh.geometry.dispose();
+                    //mesh.material.dispose();
                 });
         }
 
@@ -201,10 +201,9 @@ export default class TwinView {
 
             if (!turf.booleanPointInPolygon(point, poly)) {
                 for (let i = 0; i < value.length; ++i) {
-                    for (let j = 0; j < value[i].length; j++) {
-                        value[i][j].geometry.dispose();
-                        this.scene.remove(value[i][j]);
-                    }
+                    value[i].geometry.dispose();
+                    value[i].material.dispose();
+                    this.scene.remove(value[i]);
                 }
                 this.tiles.set(key, []);
                 await this.map.childrenClear(x2, y2);
