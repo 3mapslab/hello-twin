@@ -12,6 +12,7 @@ import * as turf from "@turf/turf"
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const tileLevel = 18;
 const removeDistance = 1000;
+const far = 2500;
 
 CameraControls.install({ THREE: THREE });
 
@@ -52,7 +53,7 @@ export default class TwinView {
         this.initMap();
 
         // Nevoeiro
-        //this.scene.fog = new THREE.Fog(0xFFFFFF, far / 3, far / 2);
+        this.scene.fog = new THREE.Fog(0xFFFFFF, far / 3, far / 2);
 
         //Events
         window.addEventListener('resize', this.onResize.bind(this), false);
@@ -252,6 +253,10 @@ export default class TwinView {
         }
 
         return geojson;
+    }
+
+    loadSingleObject(objectPath, coordinates) {
+        this.loader.loadGLB(objectPath, coordinates);
     }
 
     dispatch(eventName, data) {

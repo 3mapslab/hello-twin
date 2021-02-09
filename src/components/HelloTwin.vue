@@ -90,6 +90,10 @@ export default {
       initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
     };
     this.twinView = new TwinView(this.$refs.world, configs, layerProperties);
+    this.twinView.loadSingleObject("ponte_leca.glb", [
+      -8.6942530416699988,
+      41.18882222465502,
+    ]);
   },
   methods: {
   },

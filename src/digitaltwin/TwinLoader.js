@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import * as utils from "./utils.js";
 import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
 var offset = 0;
 
@@ -125,7 +126,7 @@ export default class TwinLoader {
         if (repeatValY < 0.1) {
             repeatValY *= 10;
         }
-        
+
         mesh.material.map.repeat.set(0.05, 0.2);
     }
 
@@ -209,6 +210,38 @@ export default class TwinLoader {
                 // onError callback
                 function (err) {
                     console.log("An error happened", err);
+                }
+            );
+        });
+    }
+
+    loadGLB(objectPath, coordinates) {
+        return new Promise(() => {
+            const loader = new GLTFLoader();
+            loader.load(
+                objectPath,
+                (gltf) => {
+
+                    var units = utils.convertCoordinatesToUnits(coordinates[0], coordinates[1]);
+                    var targetPosition = new THREE.Vector3(units[0] - this.center.x, 0, -(units[1] - this.center.y));
+
+                    // Adding 2 levels of detail
+                    const lod = new THREE.LOD();
+                    lod.addLevel(gltf.scene, 0);
+                    // empty cube 
+                    const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
+                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                    const cube = new THREE.Mesh(geometry, material);
+                    lod.addLevel(cube, 1000);
+                    lod.position.copy(targetPosition);
+
+                    this.scene.add(lod);
+
+                },
+                undefined,
+
+                (error) => {
+                    console.error(error);
                 }
             );
         });
