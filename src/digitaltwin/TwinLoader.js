@@ -13,7 +13,7 @@ export default class TwinLoader {
     }
 
     //Load Layers
-    loadLayer(geojson, properties, geojsonType) {
+    loadLayer(geojson, properties, type) {
         if (geojson == null || geojson.features == null) return;
 
         var geo = utils.convertGeoJsonToWorldUnits(geojson);
@@ -21,7 +21,7 @@ export default class TwinLoader {
         var geometries = [];
         var feature;
 
-        if (geojsonType == "Point") {
+        if (type == "INSTANCED") {
             return this.loadLayerInstancedMesh(geojson, properties);
         } else {
 
@@ -37,24 +37,21 @@ export default class TwinLoader {
     }
 
     async loadLayerInstancedMesh(geojson, properties) {
+
         if (geojson == null || geojson.features == null) return;
         let count = geojson.features.length;
 
-        var boxWidth = 6.06;
-        var boxHeight = 2.6;
-        var boxDepth = 2.44;
-
-        var geometry;
-        if (properties.model) geometry = await this.loadGeometry(properties.model);
+        let geometry;
+        if (properties.model) {
+            geometry = await this.loadGeometry(properties.model);
+        }
         else {
             geometry = new THREE.BoxBufferGeometry(
-                boxWidth,
-                boxHeight,
-                boxDepth
+                properties.width, properties.height, properties.depth
             );
         }
 
-        let material = new THREE.MeshBasicMaterial({
+        let material = new THREE.MeshStandardMaterial({
             'color': properties.material.color,
             'polygonOffset': true,
             'polygonOffsetUnits': -1 * offset,
@@ -74,7 +71,8 @@ export default class TwinLoader {
             let feature = geojson.features[i];
             let coordX = feature.geometry.coordinates[0];
             let coordY = feature.geometry.coordinates[1];
-            let coordZ = feature.geometry.coordinates[2] || Math.floor(Math.random()*20);
+            let coordZ = feature.geometry.coordinates[2] || Math.floor(Math.random()*5)*(properties.height+0.2);
+            if (properties.model) coordZ = properties.altitude || 0;
 
             let units = utils.convertCoordinatesToUnits(coordX, coordY);
             dummy.position.set(units[0] - this.center.x, coordZ, -(units[1] - this.center.y));

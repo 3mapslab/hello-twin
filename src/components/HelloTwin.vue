@@ -54,7 +54,9 @@ const parkProperties = {
 };
 
 const containersProperties = {
-  depth: 0.2,
+  width: 6.06,
+  height: 2.6,
+  depth: 2.44,
   altitude: 0.1,
   material: {
     color: "blue",
@@ -63,7 +65,7 @@ const containersProperties = {
 
 const temporaryTreesProperties = {
   depth: 0.1,
-  altitude: -1,
+  altitude: -0.5,
   material: {
     color: "#ffffff",
     texture: "./bush.png",
@@ -75,22 +77,29 @@ const layerProperties = [
   {
     url: "buildings",
     properties: buildingsProperties,
+    type: "MERGED",
   },
   {
     url: "gardens_v2",
     properties: gardensProperties,
+    type: "MERGED",
   },
   {
     url: "mooring_bitt",
     properties: mooringBitsProperties,
+    type: "INSTANCED",
+
   },
   {
     url: "roads_v2",
     properties: roadsProperties,
+    type: "MERGED",
+
   },
   {
     url: "parks_v2",
     properties: parkProperties,
+    type: "MERGED",
   },
   /*
   {
@@ -100,12 +109,15 @@ const layerProperties = [
   */
   {
     url:"elementos_arboreos",
-    properties: temporaryTreesProperties
+    properties: temporaryTreesProperties,
+    type: "INSTANCED",
+
   },
   
   {
     url:"contentores_complexos",
     properties: containersProperties,
+    type: "INSTANCED",
   },
 ];
 

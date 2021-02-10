@@ -170,8 +170,7 @@ export default class TwinView {
                         return;
                     }
 
-                    let geojsonType = turf.getType(geojson.features[0]);
-                    let mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, geojsonType);
+                    let mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
                     this.scene.add(mesh);
                     this.storeMesh(mesh,x,y);
                     mesh.geometry.dispose();
