@@ -109,8 +109,6 @@ LODRaycast.prototype.updateLOD = function(view, camera, renderer, scene)
 				if (node.parentNode !== null)
 				{
 					node.parentNode.simplify();
-					node.parentNode.childrenCache = null;
-					//node.parentNode.loadTexture = null;
 					return;
 				}
 			}
