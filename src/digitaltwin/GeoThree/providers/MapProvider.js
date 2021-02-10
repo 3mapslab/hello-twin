@@ -1,4 +1,3 @@
-/*eslint-disable*/
 /**
  * A map provider is a object that handles the access to map tiles of a specific service.
  *

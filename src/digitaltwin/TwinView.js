@@ -11,7 +11,7 @@ import * as turf from "@turf/turf"
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const tileLevel = 18;
-const removeDistance = 1000;
+const removeDistance = 1200;
 const far = 2500;
 
 CameraControls.install({ THREE: THREE });
@@ -204,7 +204,7 @@ export default class TwinView {
                     this.scene.remove(value[i]);
                 }
                 this.tiles.set(key, []);
-                this.map.childrenClear(x2, y2);
+                //this.map.childrenClear(x2, y2);
             }
         }
     }

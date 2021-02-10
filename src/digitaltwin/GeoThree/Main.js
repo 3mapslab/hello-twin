@@ -1,5 +1,10 @@
 export {MapView} from "./MapView.js";
 
+export {LODControl} from "./lod/LODControl.js";
+export {LODRadial} from "./lod/LODRadial.js";
+export {LODFrustum} from "./lod/LODFrustum.js";
+export {LODRaycast} from "./lod/LODRaycast.js";
+
 export {BingMapsProvider} from "./providers/BingMapsProvider.js";
 export {GoogleMapsProvider} from "./providers/GoogleMapsProvider.js";
 export {HereMapsProvider} from "./providers/HereMapsProvider.js";

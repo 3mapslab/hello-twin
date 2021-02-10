@@ -1,14 +1,14 @@
 /*eslint-disable*/
-import { Mesh, MeshBasicMaterial, Vector2, Vector3, Raycaster } from "three";
-import { MapSphereNodeGeometry } from "./geometries/MapSphereNodeGeometry.js";
-import { OpenStreetMapsProvider } from "./providers/OpenStreetMapsProvider.js";
-import { MapNode } from "./nodes/MapNode.js";
-import { MapHeightNode } from "./nodes/MapHeightNode.js";
-import { MapPlaneNode } from "./nodes/MapPlaneNode.js";
-import { MapSphereNode } from "./nodes/MapSphereNode.js";
-import { UnitsUtils } from "./utils/UnitsUtils.js";
-import { MapHeightNodeShader } from "./nodes/MapHeightNodeShader.js";
-
+import {Mesh, MeshBasicMaterial} from "three";
+import {MapSphereNodeGeometry} from "./geometries/MapSphereNodeGeometry.js";
+import {OpenStreetMapsProvider} from "./providers/OpenStreetMapsProvider.js";
+import {MapNode} from "./nodes/MapNode.js";
+import {MapHeightNode} from "./nodes/MapHeightNode.js";
+import {MapPlaneNode} from "./nodes/MapPlaneNode.js";
+import {MapSphereNode} from "./nodes/MapSphereNode.js";
+import {UnitsUtils} from "./utils/UnitsUtils.js";
+import {MapHeightNodeShader} from "./nodes/MapHeightNodeShader.js";
+import {LODRaycast} from "./lod/LODRaycast.js";
 
 /**
  * Map viewer is used to read and display map tiles from a server.
@@ -23,12 +23,16 @@ import { MapHeightNodeShader } from "./nodes/MapHeightNodeShader.js";
  * @param {number} provider Map color tile provider by default a OSM maps provider is used if none specified.
  * @param {number} heightProvider Map height tile provider, by default no height provider is used.
  */
-export class MapView extends Mesh {
-	constructor(mode, provider, fetchEvent, heightProvider) {
+export class MapView extends Mesh
+{
+	constructor(mode, provider, fetchEvent, heightProvider)
+	{
 		mode = mode !== undefined ? mode : MapView.PLANAR;
+
 		var geometry;
 
-		if (mode === MapView.SPHERICAL) {
+		if (mode === MapView.SPHERICAL)
+		{
 			geometry = new MapSphereNodeGeometry(UnitsUtils.EARTH_RADIUS, 64, 64, 0, 2 * Math.PI, 0, Math.PI);
 		}
 		else // if(mode === MapView.PLANAR || mode === MapView.HEIGHT)
@@ -36,10 +40,9 @@ export class MapView extends Mesh {
 			geometry = MapPlaneNode.GEOMETRY;
 		}
 
-		super(geometry, new MeshBasicMaterial({ transparent: true, opacity: 0.0 }));
-
+		super(geometry, new MeshBasicMaterial({transparent: true, opacity: 0.0}));
+		
 		this.fetchEvent = fetchEvent;
-
 
 		/**
 		 * Define the type of map view in use.
@@ -50,6 +53,14 @@ export class MapView extends Mesh {
 		 * @type {number}
 		 */
 		this.mode = mode;
+
+		/**
+		 * LOD control object used to defined how tiles are loaded in and out of memory.
+		 * 
+		 * @attribute lod
+		 * @type {LODControl}
+		 */
+		this.lod = new LODRaycast();
 
 		/**
 		 * Map tile color layer provider.
@@ -68,36 +79,6 @@ export class MapView extends Mesh {
 		this.heightProvider = heightProvider !== undefined ? heightProvider : null;
 
 		/**
-		 * Number of rays used to test nodes and subdivide the map.
-		 *
-		 * N rays are cast each frame dependeing on this value to check distance to the visible map nodes. A single ray should be enough for must scenarios.
-		 *
-		 * @attribute subdivisionRays
-		 * @type {boolean}
-		 */
-		this.subdivisionRays = 1;
-
-		/**
-		 * Threshold to subdivide the map tiles.
-		 * 
-		 * Lower value will subdivide earlier (less zoom required to subdivide).
-		 * 
-		 * @attribute thresholdUp
-		 * @type {number}
-		 */
-		this.thresholdUp = 0.8;
-
-		/**
-		 * Threshold to simplify the map tiles.
-		 * 
-		 * Higher value will simplify earlier.
-		 *
-		 * @attribute thresholdDown
-		 * @type {number}
-		 */
-		this.thresholdDown = 0.2;
-
-		/**
 		 * Root map node.
 		 *
 		 * @attribute root
@@ -105,31 +86,27 @@ export class MapView extends Mesh {
 		 */
 		this.root = null;
 
-		if (this.mode === MapView.PLANAR) {
+		if (this.mode === MapView.PLANAR)
+		{
 			this.scale.set(UnitsUtils.EARTH_PERIMETER, 1, UnitsUtils.EARTH_PERIMETER);
 			this.root = new MapPlaneNode(null, this, MapNode.ROOT, 0, 0, 0);
 		}
-		else if (this.mode === MapView.HEIGHT) {
+		else if (this.mode === MapView.HEIGHT)
+		{
 			this.scale.set(UnitsUtils.EARTH_PERIMETER, MapHeightNode.USE_DISPLACEMENT ? MapHeightNode.MAX_HEIGHT : 1, UnitsUtils.EARTH_PERIMETER);
 			this.root = new MapHeightNode(null, this, MapNode.ROOT, 0, 0, 0);
-			this.thresholdUp = 0.5;
-			this.thresholdDown = 0.1;
 		}
-		else if (this.mode === MapView.HEIGHT_SHADER) {
+		else if (this.mode === MapView.HEIGHT_SHADER)
+		{
 			this.scale.set(UnitsUtils.EARTH_PERIMETER, MapHeightNode.USE_DISPLACEMENT ? MapHeightNode.MAX_HEIGHT : 1, UnitsUtils.EARTH_PERIMETER);
 			this.root = new MapHeightNodeShader(null, this, MapNode.ROOT, 0, 0, 0);
 		}
-		else if (this.mode === MapView.SPHERICAL) {
+		else if (this.mode === MapView.SPHERICAL)
+		{
 			this.root = new MapSphereNode(null, this, MapNode.ROOT, 0, 0, 0);
-			this.thresholdUp = 7e7;
-			this.thresholdDown = 2e8;
 		}
-
+		
 		this.add(this.root);
-
-		this._raycaster = new Raycaster();
-		this._mouse = new Vector2();
-		this._vector = new Vector3();
 	}
 
 	/**
@@ -139,8 +116,10 @@ export class MapView extends Mesh {
 	 *
 	 * @method setProvider
 	 */
-	setProvider(provider) {
-		if (provider !== this.provider) {
+	setProvider(provider)
+	{
+		if (provider !== this.provider)
+		{
 			this.provider = provider;
 			this.clear();
 		}
@@ -153,8 +132,10 @@ export class MapView extends Mesh {
 	 *
 	 * @method setHeightProvider
 	 */
-	setHeightProvider(heightProvider) {
-		if (heightProvider !== this.heightProvider) {
+	setHeightProvider(heightProvider)
+	{
+		if (heightProvider !== this.heightProvider)
+		{
 			this.heightProvider = heightProvider;
 			this.clear();
 		}
@@ -167,13 +148,17 @@ export class MapView extends Mesh {
 	 * 
 	 * @method clear
 	 */
-	clear() {
-		this.traverse(function (children) {
-			if (children.childrenCache !== undefined && children.childrenCache !== null) {
+	clear()
+	{
+		this.traverse(function(children)
+		{
+			if (children.childrenCache !== undefined && children.childrenCache !== null)
+			{
 				children.childrenCache = null;
 			}
 
-			if (children.loadTexture !== undefined) {
+			if (children.loadTexture !== undefined)
+			{
 				children.loadTexture();
 			}
 		});
@@ -182,9 +167,10 @@ export class MapView extends Mesh {
 	childrenClear(x2, y2) {
 		this.traverse(function (child) {
 			if (child.x == x2 && child.y == y2) {
-				child.parentNode.parentNode.parentNode.simplify();
-				child.parentNode.parentNode.parentNode.childrenCache = null;
-				child.parentNode.parentNode.parentNode.loadTexture = null;
+				console.log("clear")
+				child.parentNode.parentNode.simplify();
+				child.parentNode.parentNode.childrenCache = null;
+				child.parentNode.parentNode.loadTexture = null;
 			}
 		});
 	}
@@ -196,55 +182,9 @@ export class MapView extends Mesh {
 	 *
 	 * @method onBeforeRender
 	 */
-	onBeforeRender(renderer, scene, camera, geometry, material, group) {
-		const intersects = [];
-
-		for (let t = 0; t < this.subdivisionRays; t++) {
-			//Raycast from random point
-			this._mouse.set(Math.random() * 2 - 1, Math.random() * 2 - 1);
-
-			//Check intersection
-			this._raycaster.setFromCamera(this._mouse, camera);
-			this._raycaster.intersectObjects(this.children, true, intersects);
-		}
-
-		if (this.mode === MapView.SPHERICAL) {
-			for (var i = 0; i < intersects.length; i++) {
-				var node = intersects[i].object;
-				const distance = intersects[i].distance * 2 ** node.level;
-
-				if (distance < this.thresholdUp) {
-					node.subdivide();
-					return;
-				}
-				else if (distance > this.thresholdDown) {
-					if (node.parentNode !== null) {
-						node.parentNode.simplify();
-						return;
-					}
-				}
-			}
-		}
-		else // if(this.mode === MapView.PLANAR || this.mode === MapView.HEIGHT)
-		{
-			for (var i = 0; i < intersects.length; i++) {
-				var node = intersects[i].object;
-				const matrix = node.matrixWorld.elements;
-				const scaleX = this._vector.set(matrix[0], matrix[1], matrix[2]).length();
-				const value = scaleX / intersects[i].distance;
-
-				if (value > this.thresholdUp) {
-					node.subdivide();
-					return;
-				}
-				else if (value < this.thresholdDown) {
-					if (node.parentNode !== null) {
-						node.parentNode.simplify();
-						return;
-					}
-				}
-			}
-		}
+	onBeforeRender(renderer, scene, camera, geometry, material, group)
+	{
+		this.lod.updateLOD(this, camera, renderer, scene);
 	}
 
 	/**
@@ -252,7 +192,8 @@ export class MapView extends Mesh {
 	 * 
 	 * @method getMetaData
 	 */
-	getMetaData() {
+	getMetaData()
+	{
 		this.provider.getMetaData();
 	}
 
@@ -264,12 +205,14 @@ export class MapView extends Mesh {
 	 * @param {number} x Tile x.
 	 * @param {number} y Tile y.
 	 */
-	fetchTile(zoom, x, y) {
+	fetchTile(zoom, x, y)
+	{
 		this.fetchEvent.fire({ "zoom": zoom, "x": x, "y": y });
 		return this.provider.fetchTile(zoom, x, y);
 	}
 
-	raycast(raycaster, intersects) {
+	raycast(raycaster, intersects)
+	{
 		return false;
 	}
 }
