@@ -38,7 +38,6 @@ export default class TwinLoader {
 
     async loadLayerInstancedMesh(geojson, properties) {
         if (geojson == null || geojson.features == null) return;
-
         let count = geojson.features.length;
 
         var boxWidth = 6.06;
@@ -55,7 +54,7 @@ export default class TwinLoader {
             );
         }
 
-        let material = new THREE.MeshStandardMaterial({
+        let material = new THREE.MeshBasicMaterial({
             'color': properties.material.color,
             'polygonOffset': true,
             'polygonOffsetUnits': -1 * offset,
@@ -75,9 +74,8 @@ export default class TwinLoader {
             let feature = geojson.features[i];
             let coordX = feature.geometry.coordinates[0];
             let coordY = feature.geometry.coordinates[1];
-            let coordZ = 0;
-            if (feature.properties.Z) coordZ = feature.properties.Z * 4;
-            // Para contentores de vários parques (teste): coordZ = Math.floor(Math.random()*20);
+            let coordZ = feature.geometry.coordinates[2] || Math.floor(Math.random()*20);
+
             let units = utils.convertCoordinatesToUnits(coordX, coordY);
             dummy.position.set(units[0] - this.center.x, coordZ, -(units[1] - this.center.y));
             dummy.rotation.set(0, Math.PI / 4.5, 0);

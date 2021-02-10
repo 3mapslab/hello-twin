@@ -92,18 +92,21 @@ const layerProperties = [
     url: "parks_v2",
     properties: parkProperties,
   },
+  /*
   {
     url:"containers_xyz",
     properties: containersProperties,
   },
+  */
   {
     url:"elementos_arboreos",
     properties: temporaryTreesProperties
-  },/*
+  },
+  
   {
     url:"contentores_complexos",
     properties: containersProperties,
-  },*/
+  },
 ];
 
 export default {

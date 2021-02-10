@@ -144,9 +144,18 @@ export default class TwinView {
         this.renderer.render(this.scene, this.camera);
     }
 
-    async incrementalLoading(x, y) {
 
-        // Load current tile
+
+    // Loads meshes contained in tile x,y,z and proceeds to delete distant meshes
+    // Meshes are stored in a map indexed by tile
+    async loadTile(tile) {
+
+        let x = tile.x;
+        let y = tile.y;
+        if (tile.zoom != tileLevel) {
+            return;
+        }
+
         for (let i = 0; i < this.layers.length; ++i) {
 
             let url = `http://localhost:8123/${this.layers[i].url}/${tileLevel}/${x}/${y}.geojson`
@@ -163,39 +172,29 @@ export default class TwinView {
 
                     let geojsonType = turf.getType(geojson.features[0]);
                     let mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, geojsonType);
-
                     this.scene.add(mesh);
-
-                    let key = x + "," + y;
-                    if (!this.tiles.has(key)) {
-                        this.tiles.set(key, [mesh]);
-
-                    } else {
-                        let tile = this.tiles.get(key);
-                        tile.push(mesh);
-                        this.tiles.set(key, tile);
-                    }
-
-                    //mesh.geometry.dispose();
-                    //mesh.material.dispose();
+                    this.storeMesh(mesh,x,y);
+                    mesh.geometry.dispose();
+                    mesh.material.dispose();
                 });
         }
 
         this.removeFarawayTiles(x, y);
     }
 
-    async removeFarawayTiles(x, y) {
-        let lon = this.tile2long(x);
-        let lat = this.tile2lat(y);
+    removeFarawayTiles(x, y) {
+        let lon = utils.tile2long(x, tileLevel);
+        let lat = utils.tile2lat(y, tileLevel);
 
         let center = point([lon, lat]);
         let buffered = turf.buffer(center, removeDistance, { units: 'meters' });
+
         for (let [key, value] of this.tiles.entries()) {
 
             let x2 = key.split(",")[0];
             let y2 = key.split(",")[1];
-            let lon2 = this.tile2long(x2)
-            let lat2 = this.tile2lat(y2)
+            let lon2 = utils.tile2long(x2,tileLevel);
+            let lat2 = utils.tile2lat(y2, tileLevel);
             let point = turf.point([lon2, lat2])
             let poly = turf.polygon(buffered.geometry.coordinates);
 
@@ -206,28 +205,21 @@ export default class TwinView {
                     this.scene.remove(value[i]);
                 }
                 this.tiles.set(key, []);
-                await this.map.childrenClear(x2, y2);
+                this.map.childrenClear(x2, y2);
             }
-
         }
-
     }
 
-    tile2long(x) {
-        return (x / Math.pow(2, tileLevel) * 360 - 180);
-    }
+    storeMesh(mesh, x, y) {
 
-    tile2lat(y) {
-        var n = Math.PI - 2 * Math.PI * y / Math.pow(2, tileLevel);
-        return (180 / Math.PI * Math.atan(0.5 * (Math.exp(n) - Math.exp(-n))));
-    }
+        let key = x + "," + y;
+        if (!this.tiles.has(key)) {
+            this.tiles.set(key, [mesh]);
 
-    loadTile(tile) {
-        let zoom = tile.zoom;
-        let x = tile.x;
-        let y = tile.y;
-        if (zoom == tileLevel) {
-            this.incrementalLoading(x, y);
+        } else {
+            let tile = this.tiles.get(key);
+            tile.push(mesh);
+            this.tiles.set(key, tile);
         }
     }
 
