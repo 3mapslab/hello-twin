@@ -2,6 +2,8 @@ import * as THREE from "three";
 import * as utils from "./utils.js";
 import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { KMZLoader } from 'three/examples/jsm/loaders/KMZLoader.js';
+
 
 var offset = 0;
 
@@ -12,7 +14,6 @@ export default class TwinLoader {
         this.scene = scene;
     }
 
-    //Load Layers
     loadLayer(geojson, properties, type) {
         if (geojson == null || geojson.features == null) return;
 
@@ -228,15 +229,19 @@ export default class TwinLoader {
         });
     }
 
-    loadGLB(objectPath, coordinates) {
-        return new Promise(() => {
+    loadGLB(object) {
+
+        let coordinates = object.properties.coordinates;
+        let altitude = object.properties.altitude || 0;
+
+        return new Promise((resolve) => {
             const loader = new GLTFLoader();
             loader.load(
-                objectPath,
+                object.properties.model,
                 (gltf) => {
 
                     var units = utils.convertCoordinatesToUnits(coordinates[0], coordinates[1]);
-                    var targetPosition = new THREE.Vector3(units[0] - this.center.x, 0, -(units[1] - this.center.y));
+                    var targetPosition = new THREE.Vector3(units[0] - this.center.x, altitude, -(units[1] - this.center.y));
 
                     // Adding 2 levels of detail
                     const lod = new THREE.LOD();
@@ -247,8 +252,42 @@ export default class TwinLoader {
                     const cube = new THREE.Mesh(geometry, material);
                     lod.addLevel(cube, 1000);
                     lod.position.copy(targetPosition);
+                    resolve(lod);
 
-                    this.scene.add(lod);
+                },
+                undefined,
+
+                (error) => {
+                    console.error(error);
+                }
+            );
+        });
+    }
+
+    loadKMZ(object) {
+
+        let coordinates = object.properties.coordinates;
+        let altitude = object.properties.altitude || 0;
+
+        return new Promise((resolve) => {
+            const loader = new KMZLoader();
+            loader.load(
+                object.properties.model,
+                (kmz) => {
+
+                    var units = utils.convertCoordinatesToUnits(coordinates[0], coordinates[1]);
+                    var targetPosition = new THREE.Vector3(units[0] - this.center.x, altitude, -(units[1] - this.center.y));
+
+                    // Adding 2 levels of detail
+                    const lod = new THREE.LOD();
+                    lod.addLevel(kmz.scene, 0);
+                    // empty cube 
+                    const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
+                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                    const cube = new THREE.Mesh(geometry, material);
+                    lod.addLevel(cube, 1000);
+                    lod.position.copy(targetPosition);
+                    resolve(lod);
 
                 },
                 undefined,

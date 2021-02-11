@@ -167,7 +167,6 @@ export class MapView extends Mesh
 	childrenClear(x2, y2) {
 		this.traverse(function (child) {
 			if (child.x == x2 && child.y == y2) {
-				console.log("clear")
 				child.parentNode.parentNode.simplify();
 				child.parentNode.parentNode.childrenCache = null;
 				child.parentNode.parentNode.loadTexture = null;

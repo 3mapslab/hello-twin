@@ -158,6 +158,7 @@ export default class TwinView {
 
         for (let i = 0; i < this.layers.length; ++i) {
 
+            // Layers with many objects
             let url = `http://localhost:8123/${this.layers[i].url}/${tileLevel}/${x}/${y}.geojson`
 
             await fetch(url)
@@ -170,13 +171,21 @@ export default class TwinView {
                         return;
                     }
 
-                    let mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
+                    let mesh;
+
+                    if (this.layers[i].type == "GLTF" || this.layers[i].type == "KMZ") {
+                        mesh = await this.loadSingleObject(this.layers[i]);
+                    } else { 
+                        mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
+                    }
                     this.scene.add(mesh);
-                    this.storeMesh(mesh,x,y);
-                    mesh.geometry.dispose();
-                    mesh.material.dispose();
+                    this.storeMesh(mesh, x, y);
+                    //mesh.geometry.dispose();
+                    //mesh.material.dispose();
                 });
+
         }
+
 
         this.removeFarawayTiles(x, y);
     }
@@ -192,15 +201,15 @@ export default class TwinView {
 
             let x2 = key.split(",")[0];
             let y2 = key.split(",")[1];
-            let lon2 = utils.tile2long(x2,tileLevel);
+            let lon2 = utils.tile2long(x2, tileLevel);
             let lat2 = utils.tile2lat(y2, tileLevel);
             let point = turf.point([lon2, lat2])
             let poly = turf.polygon(buffered.geometry.coordinates);
 
             if (!turf.booleanPointInPolygon(point, poly)) {
                 for (let i = 0; i < value.length; ++i) {
-                    value[i].geometry.dispose();
-                    value[i].material.dispose();
+                    //value[i].geometry.dispose();
+                    //value[i].material.dispose();
                     this.scene.remove(value[i]);
                 }
                 this.tiles.set(key, []);
@@ -246,8 +255,14 @@ export default class TwinView {
         return geojson;
     }
 
-    loadSingleObject(objectPath, coordinates) {
-        this.loader.loadGLB(objectPath, coordinates);
+    loadSingleObject(objectInfo) {
+        if (objectInfo.type == "GLTF") {
+            return this.loader.loadGLB(objectInfo);
+        } else if (objectInfo.type == "KMZ") {
+            return this.loader.loadKMZ(objectInfo);
+        } else {
+            return;
+        }
     }
 
     dispatch(eventName, data) {

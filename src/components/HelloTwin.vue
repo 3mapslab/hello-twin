@@ -73,6 +73,18 @@ const temporaryTreesProperties = {
   model: "./cabeco.json",
 }
 
+const bridgeProperties = {
+  altitude: 0,
+  coordinates: [-8.6942530416699988, 41.18882222465502],
+  model: "ponte_leca.glb",
+}
+
+const titanProperties = {
+  altitude: 0,
+  coordinates: [-8.71081747271464, 41.18437848352964],
+  model: "Titan.kmz",
+}
+
 const layerProperties = [
   {
     url: "buildings",
@@ -100,6 +112,16 @@ const layerProperties = [
     url: "parks_v2",
     properties: parkProperties,
     type: "MERGED",
+  },
+  {
+    url: "ponte",
+    properties: bridgeProperties,
+    type: "GLTF", 
+  },
+  {
+    url: "titan",
+    properties: titanProperties,
+    type: "KMZ",
   },
   /*
   {
@@ -135,10 +157,6 @@ export default {
       initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
     };
     this.twinView = new TwinView(this.$refs.world, configs, layerProperties);
-    this.twinView.loadSingleObject("ponte_leca.glb", [
-      -8.6942530416699988,
-      41.18882222465502,
-    ]);
   },
   methods: {
   },
