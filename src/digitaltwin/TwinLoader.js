@@ -24,6 +24,9 @@ export default class TwinLoader {
 
         if (type == "INSTANCED") {
             return this.loadLayerInstancedMesh(geojson, properties);
+        }
+        if (type == "CLONED") {
+            return this.loadLayerMultiGLB(geojson, properties);
         } else {
 
             for (feature of geo.features) {
@@ -44,7 +47,7 @@ export default class TwinLoader {
 
         let geometry;
         if (properties.model) {
-            geometry = await this.loadGeometry(properties.model);
+            if (properties.model.split('.').pop() == "json") geometry = await this.loadGeometry(properties.model);
         }
         else {
             geometry = new THREE.BoxBufferGeometry(
@@ -72,7 +75,7 @@ export default class TwinLoader {
             let feature = geojson.features[i];
             let coordX = feature.geometry.coordinates[0];
             let coordY = feature.geometry.coordinates[1];
-            let coordZ = feature.geometry.coordinates[2] || Math.floor(Math.random()*5)*(properties.height+0.2);
+            let coordZ = feature.geometry.coordinates[2] || Math.floor(Math.random() * 5) * (properties.height + 0.2);
             if (properties.model) coordZ = properties.altitude || 0;
 
             let units = utils.convertCoordinatesToUnits(coordX, coordY);
@@ -85,6 +88,48 @@ export default class TwinLoader {
         mesh.geometry.dispose();
         mesh.material.dispose();
         return mesh;
+    }
+
+    async loadLayerMultiGLB(geojson, properties) {
+
+        if (geojson == null || geojson.features == null) return;
+        let count = geojson.features.length;
+
+        await new Promise(() => {
+            new GLTFLoader().load(
+                properties.model,
+
+                // onLoad callback
+                (gltf) => {
+                    for (let i = 1; i < count; i++) {
+                        let feature = geojson.features[i];
+                        let coordX = feature.geometry.coordinates[0];
+                        let coordY = feature.geometry.coordinates[1];
+                        let units = utils.convertCoordinatesToUnits(coordX, coordY);
+                        var targetPosition = new THREE.Vector3(units[0] - this.center.x, 3, -(units[1] - this.center.y));
+
+                        // Adding 2 levels of detail
+                        const lod = new THREE.LOD();
+                        lod.addLevel(gltf.scene, 0);
+                        // empty cube 
+                        const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
+                        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+                        const cube = new THREE.Mesh(geometry, material);
+                        lod.addLevel(cube, 500);
+                        lod.position.copy(targetPosition);
+                        this.scene.add(lod);
+                    }
+                },
+
+                undefined,
+
+                // onError callback
+                function (err) {
+                    console.log("An error happened", err);
+                }
+            );
+        });
+
     }
 
     mergeGeometries(geometries, properties) {

@@ -63,14 +63,10 @@ const containersProperties = {
   },
 }
 
-const temporaryTreesProperties = {
+const treesProperties = {
   depth: 0.1,
   altitude: -0.5,
-  material: {
-    color: "#ffffff",
-    texture: "./bush.png",
-  },
-  model: "./cabeco.json",
+  model: "./lowpolytreegltf.glb",
 }
 
 const bridgeProperties = {
@@ -131,11 +127,9 @@ const layerProperties = [
   */
   {
     url:"elementos_arboreos",
-    properties: temporaryTreesProperties,
-    type: "INSTANCED",
-
+    properties: treesProperties,
+    type: "CLONED",
   },
-  
   {
     url:"contentores_complexos",
     properties: containersProperties,

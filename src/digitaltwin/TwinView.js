@@ -175,11 +175,16 @@ export default class TwinView {
 
                     if (this.layers[i].type == "GLTF" || this.layers[i].type == "KMZ") {
                         mesh = await this.loadSingleObject(this.layers[i]);
-                    } else { 
-                        mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
+                        this.scene.add(mesh);
+                        this.storeMesh(mesh, x, y);
                     }
-                    this.scene.add(mesh);
-                    this.storeMesh(mesh, x, y);
+                    if (this.layers[i].type == "CLONED") {
+                        this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
+                    } else {
+                        mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
+                        this.scene.add(mesh);
+                        this.storeMesh(mesh, x, y);
+                    }
                     //mesh.geometry.dispose();
                     //mesh.material.dispose();
                 });
