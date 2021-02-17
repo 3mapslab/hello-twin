@@ -260,11 +260,11 @@ export default class TwinView {
         return geojson;
     }
 
-    loadSingleObject(objectInfo) {
-        if (objectInfo.type == "GLTF") {
-            return this.loader.loadGLB(objectInfo);
-        } else if (objectInfo.type == "KMZ") {
-            return this.loader.loadKMZ(objectInfo);
+    loadSingleObject(objectInfo, coordinates) {
+        if (objectInfo.split('.').pop() == "glb") {
+            this.loader.loadGLB(objectInfo, coordinates);
+        } else if (objectInfo.split('.').pop() == "kmz") {
+            this.loader.loadKMZ(objectInfo, coordinates);
         } else {
             return;
         }

@@ -132,6 +132,7 @@ export default class TwinLoader {
 
     }
 
+
     mergeGeometries(geometries, properties) {
         var mergedGeometries = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
 
@@ -274,15 +275,15 @@ export default class TwinLoader {
         });
     }
 
-    loadGLB(object) {
+    async loadGLB(object, coordinates) {
 
-        let coordinates = object.properties.coordinates;
-        let altitude = object.properties.altitude || 0;
+        let altitude = 0;
 
-        return new Promise((resolve) => {
+        await new Promise(() => {
             const loader = new GLTFLoader();
             loader.load(
-                object.properties.model,
+                object,
+
                 (gltf) => {
 
                     var units = utils.convertCoordinatesToUnits(coordinates[0], coordinates[1]);
@@ -297,7 +298,7 @@ export default class TwinLoader {
                     const cube = new THREE.Mesh(geometry, material);
                     lod.addLevel(cube, 1000);
                     lod.position.copy(targetPosition);
-                    resolve(lod);
+                    this.scene.add(lod);
 
                 },
                 undefined,
@@ -309,15 +310,15 @@ export default class TwinLoader {
         });
     }
 
-    loadKMZ(object) {
+    async loadKMZ(object, coordinates) {
 
-        let coordinates = object.properties.coordinates;
-        let altitude = object.properties.altitude || 0;
+        let altitude = 0;
 
-        return new Promise((resolve) => {
+        await new Promise(() => {
             const loader = new KMZLoader();
             loader.load(
-                object.properties.model,
+                object,
+
                 (kmz) => {
 
                     var units = utils.convertCoordinatesToUnits(coordinates[0], coordinates[1]);
@@ -332,7 +333,7 @@ export default class TwinLoader {
                     const cube = new THREE.Mesh(geometry, material);
                     lod.addLevel(cube, 1000);
                     lod.position.copy(targetPosition);
-                    resolve(lod);
+                    this.scene.add(lod);
 
                 },
                 undefined,

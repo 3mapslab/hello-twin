@@ -16,7 +16,7 @@ const mooringBitsProperties = {
     color: "#ffffff",
     texture: "./plainroof.jpg",
   },
-  model: "./cabeco.json"
+  model: "./cabeco.json",
 };
 
 const buildingsProperties = {
@@ -53,6 +53,7 @@ const parkProperties = {
   },
 };
 
+/*
 const containersProperties = {
   width: 6.06,
   height: 2.6,
@@ -62,24 +63,13 @@ const containersProperties = {
     color: "blue",
   },
 }
+*/
 
 const treesProperties = {
   depth: 0.1,
   altitude: -0.5,
   model: "./lowpolytreegltf.glb",
-}
-
-const bridgeProperties = {
-  altitude: 0,
-  coordinates: [-8.6942530416699988, 41.18882222465502],
-  model: "ponte_leca.glb",
-}
-
-const titanProperties = {
-  altitude: 0,
-  coordinates: [-8.71081747271464, 41.18437848352964],
-  model: "Titan.kmz",
-}
+};
 
 const layerProperties = [
   {
@@ -96,13 +86,11 @@ const layerProperties = [
     url: "mooring_bitt",
     properties: mooringBitsProperties,
     type: "INSTANCED",
-
   },
   {
     url: "roads_v2",
     properties: roadsProperties,
     type: "MERGED",
-
   },
   {
     url: "parks_v2",
@@ -110,31 +98,17 @@ const layerProperties = [
     type: "MERGED",
   },
   {
-    url: "ponte",
-    properties: bridgeProperties,
-    type: "GLTF", 
-  },
-  {
-    url: "titan",
-    properties: titanProperties,
-    type: "KMZ",
-  },
-  /*
-  {
-    url:"containers_xyz",
-    properties: containersProperties,
-  },
-  */
-  {
-    url:"elementos_arboreos",
+    url: "elementos_arboreos",
     properties: treesProperties,
     type: "CLONED",
   },
+  /*
   {
     url:"contentores_complexos",
     properties: containersProperties,
     type: "INSTANCED",
   },
+  */
 ];
 
 export default {
@@ -151,9 +125,16 @@ export default {
       initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
     };
     this.twinView = new TwinView(this.$refs.world, configs, layerProperties);
+    this.twinView.loadSingleObject("./ponte_leca.glb", [
+      -8.6942530416699988,
+      41.18882222465502,
+    ]);
+    this.twinView.loadSingleObject("./Titan.kmz", [
+      -8.71081747271464,
+      41.18437848352964,
+    ]);
   },
-  methods: {
-  },
+  methods: {},
 };
 </script>
 
