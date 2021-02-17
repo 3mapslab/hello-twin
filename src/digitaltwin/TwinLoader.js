@@ -95,13 +95,12 @@ export default class TwinLoader {
         if (geojson == null || geojson.features == null) return;
         let count = geojson.features.length;
 
-        await new Promise(() => {
+        for (let i = 1; i < count; i++) {
             new GLTFLoader().load(
                 properties.model,
 
                 // onLoad callback
                 (gltf) => {
-                    for (let i = 1; i < count; i++) {
                         let feature = geojson.features[i];
                         let coordX = feature.geometry.coordinates[0];
                         let coordY = feature.geometry.coordinates[1];
@@ -115,10 +114,9 @@ export default class TwinLoader {
                         const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
                         const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
                         const cube = new THREE.Mesh(geometry, material);
-                        lod.addLevel(cube, 500);
+                        lod.addLevel(cube, 380);
                         lod.position.copy(targetPosition);
                         this.scene.add(lod);
-                    }
                 },
 
                 undefined,
@@ -128,14 +126,13 @@ export default class TwinLoader {
                     console.log("An error happened", err);
                 }
             );
-        });
+        }
 
     }
 
 
     mergeGeometries(geometries, properties) {
         var mergedGeometries = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
-
         ++offset;
 
         let material = new THREE.MeshBasicMaterial({
