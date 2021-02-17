@@ -65,10 +65,21 @@ const containersProperties = {
 }
 */
 
-const treesProperties = {
+const treesPropertiesBottom = {
   depth: 0.1,
-  altitude: -0.5,
-  model: "./lowpolytreegltf.glb",
+  altitude: 2.0,
+  model: "./tree_tronco.json",
+  material: {
+    color: "#8B4513",
+  },
+};
+const treesPropertiesTop = {
+  depth: 0.1,
+  altitude: 2.0,
+  model: "./tree_copa.json",
+  material: {
+    color: "#006400",
+  },
 };
 
 const layerProperties = [
@@ -99,8 +110,13 @@ const layerProperties = [
   },
   {
     url: "elementos_arboreos",
-    properties: treesProperties,
-    type: "CLONED",
+    properties: treesPropertiesBottom,
+    type: "INSTANCED",
+  },
+  {
+    url: "elementos_arboreos",
+    properties: treesPropertiesTop,
+    type: "INSTANCED",
   },
   /*
   {
