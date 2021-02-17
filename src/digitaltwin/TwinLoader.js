@@ -137,7 +137,7 @@ export default class TwinLoader {
         var mergedGeometries = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
 
         ++offset;
-
+        
         let material = new THREE.MeshBasicMaterial({
             'color': properties.material.color,
             'polygonOffset': true,
@@ -153,6 +153,33 @@ export default class TwinLoader {
             text.minFilter = THREE.LinearFilter;
             material.map = text;
         }
+        
+        /*
+       let faceCount = mergedGeometries.attributes.position.array.length / 3 / 3;
+       let materials = [];
+
+       for(let i = 0; i < faceCount; ++i) {
+           // each face has 3 vertices, with 3 coordinates each
+           let normals = mergedGeometries.attributes.normal.array;
+           let isTopFace = true;
+           for(let j = i*9; j < i*9+9; j+=3) {
+               // perpendicular
+               if(! (normals[j] == 0 && normals[j+1] != 0 && normals[j+2] == 0))
+                   isTopFace = false;
+           }
+           if (isTopFace) {
+               console.log("top");
+               materials.push(new THREE.MeshBasicMaterial({
+                   color: "green",
+               }));
+
+           } else {
+               materials.push(new THREE.MeshBasicMaterial({
+                   color: properties.material.color,
+               }));
+           }
+       }
+       */
 
         var mergedMesh = new THREE.Mesh(mergedGeometries, material);
         mergedMesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
