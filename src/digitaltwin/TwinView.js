@@ -187,7 +187,8 @@ export default class TwinView {
                     }
                     //mesh.geometry.dispose();
                     //mesh.material.dispose();
-                });
+                })
+                .catch( (error) => console.log(error))
 
         }
 
