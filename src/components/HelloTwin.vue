@@ -62,6 +62,7 @@ const containersProperties = {
   altitude: 0.1,
   material: {
     color: "blue",
+    texture: "./garden.jpg",
   },
 }
 */

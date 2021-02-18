@@ -71,6 +71,7 @@ export default class TwinView {
         this.layers = layerProps;
 
         this.containers = this.initContainers();
+
         this.scene.add(this.containers);
 
         this.activateSockets();
@@ -81,12 +82,50 @@ export default class TwinView {
         let geometry = new THREE.BoxBufferGeometry(
             6.06, 2.6, 2.44
         );
-        let material = new THREE.MeshStandardMaterial({
-            'color': "blue",
-            'polygonOffset': true,
-            'polygonOffsetUnits': -1,
-            'polygonOffsetFactor': -1,
-        });
+
+        let textBack = new THREE.TextureLoader().load("./containerTextures/backevergreen.jpg");
+        let textDoor = new THREE.TextureLoader().load("./containerTextures/doorevergreen.jpg");
+        let textUp = new THREE.TextureLoader().load("./containerTextures/upevergreen.jpg");
+        let textSide = new THREE.TextureLoader().load("./containerTextures/sideevergreen.jpg");
+        
+        let material = [
+            new THREE.MeshStandardMaterial({
+                'map': textBack,
+                'polygonOffset': true,
+                'polygonOffsetUnits': -1,
+                'polygonOffsetFactor': -1,
+            }),
+            new THREE.MeshStandardMaterial({
+                'map': textDoor,
+                'polygonOffset': true,
+                'polygonOffsetUnits': -1,
+                'polygonOffsetFactor': -1,
+            }),
+            new THREE.MeshStandardMaterial({
+                'map': textUp,
+                'polygonOffset': true,
+                'polygonOffsetUnits': -1,
+                'polygonOffsetFactor': -1,
+            }),
+            new THREE.MeshStandardMaterial({
+                'map': textUp,
+                'polygonOffset': true,
+                'polygonOffsetUnits': -1,
+                'polygonOffsetFactor': -1,
+            }),
+            new THREE.MeshStandardMaterial({
+                'map': textSide,
+                'polygonOffset': true,
+                'polygonOffsetUnits': -1,
+                'polygonOffsetFactor': -1,
+            }),
+            new THREE.MeshStandardMaterial({
+                'map': textSide,
+                'polygonOffset': true,
+                'polygonOffsetUnits': -1,
+                'polygonOffsetFactor': -1,
+            }),
+        ];
         let count = 100000;
 
         return new TwinContainers(geometry, material, count, this.coords);
