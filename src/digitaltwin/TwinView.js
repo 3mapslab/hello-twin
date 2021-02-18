@@ -4,15 +4,19 @@ import { MapView } from "./GeoThree/MapView";
 import { MapBoxProvider } from "./GeoThree/providers/MapBoxProvider";
 import { UnitsUtils } from "./GeoThree/utils/UnitsUtils";
 import TwinEvent from "./TwinEvent";
-import TwinLoader from './TwinLoader'
-import * as utils from "./utils.js"
-import { point } from "@turf/helpers"
-import * as turf from "@turf/turf"
+import TwinLoader from './TwinLoader';
+import TwinContainers from "./TwinContainers";
+import * as utils from "./utils.js";
+import { point } from "@turf/helpers";
+import * as turf from "@turf/turf";
+import SocketServiceHelper from "../helpers/realtime/socketservicehelper";
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const tileLevel = 18;
 const removeDistance = 1000;
 const far = 2500;
+//The channels to subscribe for realtime updates
+const CONTAINERS_CHANNEL = "containers";
 
 CameraControls.install({ THREE: THREE });
 
@@ -52,7 +56,7 @@ export default class TwinView {
         this.map = null;
         this.initMap();
 
-        // Nevoeiro
+        //Fog
         this.scene.fog = new THREE.Fog(0xFFFFFF, far / 3, far / 2);
 
         //Events
@@ -65,6 +69,39 @@ export default class TwinView {
         this.tiles = new Map();
 
         this.layers = layerProps;
+
+        this.containers = this.initContainers();
+        this.scene.add(this.containers);
+
+        this.activateSockets();
+
+    }
+
+    initContainers() {
+        let geometry = new THREE.BoxBufferGeometry(
+            6.06, 2.6, 2.44
+        );
+        let material = new THREE.MeshStandardMaterial({
+            'color': "blue",
+            'polygonOffset': true,
+            'polygonOffsetUnits': -1,
+            'polygonOffsetFactor': -1,
+        });
+        let count = 100000;
+
+        return new TwinContainers(geometry, material, count, this.coords);
+    }
+
+    activateSockets() {
+        SocketServiceHelper.initialize();
+
+        let that = this;
+
+        SocketServiceHelper._connection.on(CONTAINERS_CHANNEL, function (message) {
+            if (message.operation == "ADD") {
+                that.containers.addContainer(message);
+            }
+        });
     }
 
     initCamera() {
@@ -188,7 +225,7 @@ export default class TwinView {
                     //mesh.geometry.dispose();
                     //mesh.material.dispose();
                 })
-                .catch( (error) => console.log(error))
+                .catch((error) => console.log(error))
 
         }
 
