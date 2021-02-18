@@ -2,17 +2,16 @@ import * as THREE from "three";
 import * as utils from "./utils.js"
 
 export default class TwinContainers extends THREE.InstancedMesh {
-    
+
     constructor(geometry, material, count, worldCenter) {
         super(geometry, material, count);
 
         this.center = worldCenter;
         this.containers = new Map();
     }
-    
-    addContainer(container) {
 
-        this.containers.set(container.code, container);
+    addContainer(container) {
+        container.index = this.containers.size;
         let lon = container.geometry.coordinates[0];
         let lat = container.geometry.coordinates[1];
         let units = utils.convertCoordinatesToUnits(lon, lat);
@@ -20,7 +19,7 @@ export default class TwinContainers extends THREE.InstancedMesh {
         const dummy = new THREE.Object3D();
         dummy.position.set(
             units[0] - this.center.x,
-            10,
+            container.height + 2,
             -(units[1] - this.center.y)
         );
 
@@ -29,13 +28,22 @@ export default class TwinContainers extends THREE.InstancedMesh {
         this.setMatrixAt(this.containers.size, dummy.matrix);
 
         this.instanceMatrix.needsUpdate = true;
+        this.containers.set(container.code, container);
     }
 
     removeContainer(container) {
-        console.log(container)
-        // find container in containers[], then
-        // move it outside view ?
-        // OR shift back the positions of containers added after it
+        let currentContainer = this.containers.get(container.code);
+        const matrix = new THREE.Matrix4();
+
+        matrix.set(0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0,
+            0, 0, 0, 0);
+
+        this.setMatrixAt(currentContainer.index, matrix);
+        this.instanceMatrix.needsUpdate = true;
+        this.containers.delete(currentContainer.code);
+        
     }
 
 }

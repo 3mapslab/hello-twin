@@ -8,6 +8,7 @@
 <script>
 import TwinView from "@/digitaltwin/TwinView";
 import Stats from "./Stats";
+import SocketServiceHelper from "../helpers/realtime/socketservicehelper";
 
 const mooringBitsProperties = {
   depth: 0.1,
@@ -149,7 +150,10 @@ export default {
       -8.71081747271464,
       41.18437848352964,
     ]);
-    
+  },
+
+  beforeDestroy() {	
+      SocketServiceHelper.deInitialize();	
   },
 
   methods: {},

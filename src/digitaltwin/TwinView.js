@@ -101,6 +101,9 @@ export default class TwinView {
             if (message.operation == "ADD") {
                 that.containers.addContainer(message);
             }
+            if (message.operation == "REMOVE") {
+                that.containers.removeContainer(message);
+            }
         });
     }
 
