@@ -10,6 +10,7 @@ import * as utils from "./utils.js";
 import { point } from "@turf/helpers";
 import * as turf from "@turf/turf";
 import SocketServiceHelper from "../helpers/realtime/socketservicehelper";
+import { VertexNormalsHelper } from 'three/examples/jsm/helpers/VertexNormalsHelper.js';
 
 const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const tileLevel = 18;
@@ -276,7 +277,12 @@ export default class TwinView {
                         return;
                     }
 
+                    console.log(geojson)
+
                     let mesh;
+
+                    
+
 
                     if (this.layers[i].type == "GLTF" || this.layers[i].type == "KMZ") {
                         mesh = await this.loadSingleObject(this.layers[i]);
@@ -289,6 +295,8 @@ export default class TwinView {
                         mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
                         this.scene.add(mesh);
                         this.storeMesh(mesh, x, y);
+                        const helper = new VertexNormalsHelper( mesh, 2, 0x00ff00, 1 );
+                        this.scene.add( helper );
                     }
                     //mesh.geometry.dispose();
                     //mesh.material.dispose();

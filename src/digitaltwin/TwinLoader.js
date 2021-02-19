@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import * as utils from "./utils.js";
-import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
+//import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { KMZLoader } from 'three/examples/jsm/loaders/KMZLoader.js';
 
@@ -32,9 +32,12 @@ export default class TwinLoader {
             for (feature of geo.features) {
                 feature.properties = Object.assign({}, properties, feature.properties);
                 shape = this.createShape(feature);
+                console.log(shape)
                 geometries.push(shape);
                 shape.dispose();
             }
+
+            //utils.mergeBufferGeometries(geometries);
 
             return this.mergeGeometries(geometries, properties);
         }
@@ -132,7 +135,7 @@ export default class TwinLoader {
 
 
     mergeGeometries(geometries, properties) {
-        var mergedGeometries = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
+        var mergedGeometries = utils.mergeBufferGeometries(geometries, false);
         ++offset;
         
         let material = new THREE.MeshBasicMaterial({
