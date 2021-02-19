@@ -11,6 +11,7 @@ export default class TwinContainers extends THREE.InstancedMesh {
     }
 
     addContainer(container) {
+
         container.index = this.containers.size;
         let lon = container.geometry.coordinates[0];
         let lat = container.geometry.coordinates[1];
@@ -43,7 +44,7 @@ export default class TwinContainers extends THREE.InstancedMesh {
         this.setMatrixAt(currentContainer.index, matrix);
         this.instanceMatrix.needsUpdate = true;
         this.containers.delete(currentContainer.code);
-        
+
     }
 
 }

@@ -70,63 +70,87 @@ export default class TwinView {
 
         this.layers = layerProps;
 
-        this.containers = this.initContainers();
-
-        this.scene.add(this.containers);
+        this.constructContainers();
 
         this.activateSockets();
 
     }
 
-    initContainers() {
+    constructContainers() {
+        this.containers = new Map();
+        this.containers.set("EVERGREEN", this.initContainers("evergreen"));
+        this.containers.set("apl", this.initContainers("apl"));
+        this.containers.set("msc", this.initContainers("msc"));
+        this.containers.set("uniglory", this.initContainers("uniglory"));
+        this.containers.set("Hamburg Sud", this.initContainers("hamburg"));
+        this.containers.set("hapag", this.initContainers("hapag"));
+        this.containers.set("hanjin", this.initContainers("hanjin"));
+        this.containers.set("ttc", this.initContainers("ttc"));
+        this.containers.set("maersk", this.initContainers("maersk"));
+        this.containers.set("one", this.initContainers("one"));
+        this.containers.set("maersknew", this.initContainers("maersknew"));
+
+        this.containers.forEach((company) => {
+            this.scene.add(company);
+        })
+    }
+
+    initContainers(companyName) {
         let geometry = new THREE.BoxBufferGeometry(
             6.06, 2.6, 2.44
         );
 
-        let textBack = new THREE.TextureLoader().load("./containerTextures/backevergreen.jpg");
-        let textDoor = new THREE.TextureLoader().load("./containerTextures/doorevergreen.jpg");
-        let textUp = new THREE.TextureLoader().load("./containerTextures/upevergreen.jpg");
-        let textSide = new THREE.TextureLoader().load("./containerTextures/sideevergreen.jpg");
-        
+        let textBack = new THREE.TextureLoader().load("./containerTextures/back" + companyName + ".jpg");
+        let textDoor = new THREE.TextureLoader().load("./containerTextures/door" + companyName + ".jpg");
+        let textUp = new THREE.TextureLoader().load("./containerTextures/up" + companyName + ".jpg");
+        let textSide = new THREE.TextureLoader().load("./containerTextures/side" + companyName + ".jpg");
+
         let material = [
-            new THREE.MeshStandardMaterial({
+            new THREE.MeshBasicMaterial({
+                //'color': "black",
                 'map': textBack,
                 'polygonOffset': true,
                 'polygonOffsetUnits': -1,
                 'polygonOffsetFactor': -1,
             }),
-            new THREE.MeshStandardMaterial({
+            new THREE.MeshBasicMaterial({
+                //'color': "black",
                 'map': textDoor,
                 'polygonOffset': true,
                 'polygonOffsetUnits': -1,
                 'polygonOffsetFactor': -1,
             }),
-            new THREE.MeshStandardMaterial({
+            new THREE.MeshBasicMaterial({
+                //'color': "black",
                 'map': textUp,
                 'polygonOffset': true,
                 'polygonOffsetUnits': -1,
                 'polygonOffsetFactor': -1,
             }),
-            new THREE.MeshStandardMaterial({
+            new THREE.MeshBasicMaterial({
+                //'color': "black",
                 'map': textUp,
                 'polygonOffset': true,
                 'polygonOffsetUnits': -1,
                 'polygonOffsetFactor': -1,
             }),
-            new THREE.MeshStandardMaterial({
+            new THREE.MeshBasicMaterial({
+                //'color': "black",
                 'map': textSide,
                 'polygonOffset': true,
                 'polygonOffsetUnits': -1,
                 'polygonOffsetFactor': -1,
             }),
-            new THREE.MeshStandardMaterial({
+            new THREE.MeshBasicMaterial({
+                //'color': "black",
                 'map': textSide,
                 'polygonOffset': true,
                 'polygonOffsetUnits': -1,
                 'polygonOffsetFactor': -1,
             }),
         ];
-        let count = 100000;
+
+        let count = 5000;
 
         return new TwinContainers(geometry, material, count, this.coords);
     }
@@ -138,10 +162,12 @@ export default class TwinView {
 
         SocketServiceHelper._connection.on(CONTAINERS_CHANNEL, function (message) {
             if (message.operation == "ADD") {
-                that.containers.addContainer(message);
+                let company = message.operator;
+                that.containers.get(company).addContainer(message);
             }
             if (message.operation == "REMOVE") {
-                that.containers.removeContainer(message);
+                let company = message.operator;
+                that.containers.get(company).removeContainer(message);
             }
         });
     }
