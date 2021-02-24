@@ -1,7 +1,7 @@
 import { reproject } from "reproject";
 import proj4 from "proj4";
 import * as THREE from "three"
-import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
+//import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
 
 
 export function convertGeoJsonToWorldUnits(geojson) {
@@ -32,8 +32,6 @@ export function tile2lat(y, z) {
 export function mergeBufferGeometries(geometries) {
 
     let mergedGeometry = new THREE.BufferGeometry();
-    let attributesUsed = new Set(Object.keys(geometries[0].attributes));
-    let attributes = {};
     let topNormal = [];
     let sideNormal = [];
     let topPosition = [];
@@ -41,69 +39,75 @@ export function mergeBufferGeometries(geometries) {
     let topUV = [];
     let sideUV = [];
 
-    for (let i = 0; i < geometries.length; ++i ) {
-        let geometry = geometries[ i ];
+    for (let i = 0; i < geometries.length; ++i) {
 
-        for (let name in geometry.attributes ) {
-            if (!attributesUsed.has(name)) {
-                console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed with geometry at index ' + i + '. All geometries must have compatible attributes; make sure "' + name + '" attribute exists among all geometries, or in none of them.' );
-                return null;
-            }
+        let geometry = geometries[i];
+        if (geometry.attributes.normal == null) {
+            return;
+        } 
 
-            if ( attributes[name] === undefined ) {
-                attributes[name] = [];
-            }
+        let normal = geometry.attributes.normal.array;
+        let position = geometry.attributes.position.array;
+        let uv = geometry.attributes.uv.array;
 
-            attributes[name].push(geometry.attributes[name]);
+        // Iterate through faces - each face has 3 vertices with 3 positions each
+        for (let j = 0; j < position.length; j += 9) {
 
-        }
+            let z1 = position[j + 2], z2 = position[j + 5], z3 = position[j + 8];
 
-        // iterate through normals and check if horizontal or vertical
-        if(geometry.attributes.normal) {
+            // Top and bottom faces
+            if ((z1 == z2) && (z2 == z3)) {
+                topPosition.push(position[j], position[j + 1], position[j + 2],
+                    position[j + 3], position[j + 4], position[j + 5],
+                    position[j + 6], position[j + 7], position[j + 8]
+                );
 
-            let normal = geometry.attributes.normal.array;
-            let position = geometry.attributes.position.array;
-            let uv = geometry.attributes.uv.array;
+                topNormal.push(normal[j], normal[j + 1], normal[j + 2],
+                    normal[j + 3], normal[j + 4], normal[j + 5],
+                    normal[j + 6], normal[j + 7], normal[j + 8]);
 
-            for(let j = 0; j < normal.length; j+=3) {
+                topUV.push(uv[j], uv[j + 1], uv[j + 2],
+                    uv[j + 3], uv[j + 4], uv[j + 5]);
 
-                // vertex is in a face perpendicular to terrain
-                if(normal[j+1] == 0) {
-                    sideNormal.push([normal[j], normal[j+1], normal[j+2]])
-                    sidePosition.push([position[j], position[j+1], position[j+2]])
-                    sideUV.push([uv[j], uv[j+1], uv[j+2]])
+            // Side faces
+            } else {
+                sidePosition.push(position[j], position[j + 1], position[j + 2],
+                    position[j + 3], position[j + 4], position[j + 5],
+                    position[j + 6], position[j + 7], position[j + 8]
+                );
 
-                // face is parallel to terrain
-                } else {
-                    topNormal.push([normal[j], normal[j+1], normal[j+2]])
-                    topPosition.push([position[j], position[j+1], position[j+2]])
-                    topUV.push([uv[j], uv[j+1], uv[j+2]])
-                }
+                sideNormal.push(normal[j], normal[j + 1], normal[j + 2],
+                    normal[j + 3], normal[j + 4], normal[j + 5],
+                    normal[j + 6], normal[j + 7], normal[j + 8]);
+
+                sideUV.push(uv[j], uv[j + 1], uv[j + 2],
+                    uv[j + 3], uv[j + 4], uv[j + 5]);
             }
         }
     }
 
-    let normal = topNormal.concat(sideNormal)
-    let position = topPosition.concat(sidePosition)
-    let uv = topUV.concat(sideUV)
+    let verticesTop = topNormal.length / 3;
+    let verticesTotal = (topNormal.length + sideNormal.length)/3;
 
-    attributes.normal.array = normal;
-    attributes.position.array = position;
-    attributes.uv.array = uv;
+    let normal = new Float32Array(verticesTotal*3);
+    normal.set(topNormal);
+    normal.set(sideNormal, verticesTop*3);
 
-    
-    for ( var name in attributes ) {
-        var mergedAttribute =
-            BufferGeometryUtils.mergeBufferAttributes( attributes[ name ] );
+    let position = new Float32Array(verticesTotal*3);
+    position.set(topPosition);
+    position.set(sidePosition, verticesTop*3);
 
-        if ( ! mergedAttribute ) {
-            console.error( 'THREE.BufferGeometryUtils: .mergeBufferGeometries() failed while trying to merge the ' + name + ' attribute.' );
-            return null;
-        }
+    let uv = new Float32Array(verticesTotal*2);
+    uv.set(topUV);
+    uv.set(sideUV, verticesTop*2);
 
-        mergedGeometry.setAttribute( name, mergedAttribute );
+    mergedGeometry.setAttribute("position", new THREE.BufferAttribute(position, 3));
+    mergedGeometry.setAttribute("normal", new THREE.BufferAttribute(normal, 3));
+    mergedGeometry.setAttribute("uv", new THREE.BufferAttribute(uv, 2));
 
-    }
-    
+    // Top faces get material 0, side faces get material 1
+    mergedGeometry.addGroup(0, verticesTop, 0);
+    mergedGeometry.addGroup(verticesTop, sideNormal.length/3, 1)
+
     return mergedGeometry;
 }
