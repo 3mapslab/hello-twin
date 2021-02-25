@@ -132,42 +132,88 @@ export default class TwinLoader {
 
     }
 
-
     mergeGeometries(geometries, properties) {
+
         var mergedGeometries = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
         ++offset;
         
-        let material = new THREE.MeshBasicMaterial({
-                'color': properties.material.color,
-                'polygonOffset': true,
-                'polygonOffsetUnits': -1 * offset,
-                'polygonOffsetFactor': -1,
+        let materialTop = new THREE.MeshBasicMaterial({
+            'color': properties.material.color,
+            'polygonOffset': true,
+            'polygonOffsetUnits': -1 * offset,
+            'polygonOffsetFactor': -1,
+        });
+        
+        let materialSide = new THREE.MeshBasicMaterial({
+            'color': properties.material.color,
+            'polygonOffset': true,
+            'polygonOffsetUnits': -1 * offset,
+            'polygonOffsetFactor': -1,
+            'map': null,
         });
 
-        if (properties.material.texture) {
-            let text = new THREE.TextureLoader().load(properties.material.texture);
-            material.color = null;
-            text.wrapS = text.wrapT = THREE.RepeatWrapping;
-            text.flipY = false;
-            text.minFilter = THREE.LinearFilter;
-            material.map = text;
+
+        if (properties.material.textureTop) {
+            let texture = new THREE.TextureLoader().load(properties.material.textureTop);
+            materialTop.color = null;
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.flipY = false;
+            texture.minFilter = THREE.LinearFilter;
+            materialTop.map = texture;
         }
 
-        console.log(material.map)
+        if (properties.material.textureSide) {
+            let texture = new THREE.TextureLoader().load(properties.material.textureSide);
+            materialSide.color = null;
+            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+            texture.flipY = false;
+            texture.minFilter = THREE.LinearFilter;
+            materialSide.map = texture;
+        }
 
-        var mergedMesh = new THREE.Mesh(mergedGeometries, material);
+        let materials = [materialTop, materialSide];
+
+        var mergedMesh = new THREE.Mesh(mergedGeometries, materials);
         mergedMesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
         mergedMesh.updateMatrix();
-
-        if (properties.material.texture) {
+        
+        if (properties.material.textureTop) {
+            this.adjustTextureTopRepeat(mergedMesh, 256);
+        }
+        if (properties.material.textureSide) {
             this.adjustTextureSideRepeat(mergedMesh, 256);
         }
 
         mergedMesh.geometry.dispose();
-        mergedMesh.material.dispose();
+        //mergedMesh.material.dispose();
 
         return mergedMesh;
     }
+
+    adjustTextureTopRepeat(mesh, textureSize) {
+
+        mesh.geometry.computeBoundingBox();
+        let max = mesh.geometry.boundingBox.max;
+        let min = mesh.geometry.boundingBox.min;
+
+        let height = max.y - min.y;
+        let width = max.x - min.x;
+
+        let repeatValX = width / textureSize;
+        let repeatValY = height / textureSize;
+
+        if (repeatValX < 0.1) {
+            repeatValX *= 10;
+        } else if (repeatValX > 0.45) {
+            repeatValX /= 2;
+        }
+        if (repeatValY < 0.1) {
+            repeatValY *= 10;
+        }
+
+        mesh.material[0].map.repeat.set(0.05, 0.2);
+    }
+
 
     adjustTextureSideRepeat(mesh, textureSize) {
 
@@ -190,7 +236,7 @@ export default class TwinLoader {
             repeatValY *= 10;
         }
 
-        mesh.material.map.repeat.set(0.05, 0.2);
+        mesh.material[1].map.repeat.set(0.05, 0.2);
     }
 
     createShape(feature) {
