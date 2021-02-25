@@ -25,7 +25,7 @@ export default class TwinLoader {
         if (type == "INSTANCED") {
             return this.loadLayerInstancedMesh(geojson, properties);
         }
-        if (type == "CLONED") {
+        if (type == "GLB") {
             return this.loadLayerMultiGLB(geojson, properties);
         } else {
 
@@ -152,8 +152,6 @@ export default class TwinLoader {
             text.minFilter = THREE.LinearFilter;
             material.map = text;
         }
-
-        console.log(material.map)
 
         var mergedMesh = new THREE.Mesh(mergedGeometries, material);
         mergedMesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);

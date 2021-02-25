@@ -1,39 +1,38 @@
 import * as THREE from "three";
 import * as utils from "./utils.js"
 
-export default class TwinContainers extends THREE.InstancedMesh {
+export default class TwinDynamicObjects extends THREE.InstancedMesh {
 
     constructor(geometry, material, count, worldCenter) {
         super(geometry, material, count);
 
         this.center = worldCenter;
-        this.containers = new Map();
+        this.objects = new Map();
     }
 
-    addContainer(container) {
-
-        container.index = this.containers.size;
-        let lon = container.geometry.coordinates[0];
-        let lat = container.geometry.coordinates[1];
+    addObject(object) {
+        object.index = this.objects.size;
+        let lon = object.geometry.coordinates[0];
+        let lat = object.geometry.coordinates[1];
         let units = utils.convertCoordinatesToUnits(lon, lat);
 
         const dummy = new THREE.Object3D();
         dummy.position.set(
             units[0] - this.center.x,
-            container.height + 2,
+            object.height + 2,
             -(units[1] - this.center.y)
         );
 
         dummy.rotation.set(0, Math.PI / 4.5, 0);
         dummy.updateMatrix();
-        this.setMatrixAt(this.containers.size, dummy.matrix);
+        this.setMatrixAt(this.objects.size, dummy.matrix);
 
         this.instanceMatrix.needsUpdate = true;
-        this.containers.set(container.code, container);
+        this.objects.set(object.code, object);
     }
 
-    removeContainer(container) {
-        let currentContainer = this.containers.get(container.code);
+    removeObject(object) {
+        let currentContainer = this.objects.get(object.code);
         const matrix = new THREE.Matrix4();
 
         matrix.set(0, 0, 0, 0,
@@ -43,8 +42,13 @@ export default class TwinContainers extends THREE.InstancedMesh {
 
         this.setMatrixAt(currentContainer.index, matrix);
         this.instanceMatrix.needsUpdate = true;
-        this.containers.delete(currentContainer.code);
-
+        this.objects.delete(currentContainer.code);
     }
+
+    /*
+    updatePosition(object, newPosition) {
+        // TODO
+    }
+    */
 
 }
