@@ -48,7 +48,7 @@ export default class TwinDynamicObjects extends THREE.InstancedMesh {
     /*
     updatePosition(object, newPosition) {
         // TODO
-        let currentObject = this.objects.get(object.code);
+        let currentObject = this.objects.get(object.code);        
     }
     */
 
