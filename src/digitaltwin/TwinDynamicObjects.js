@@ -32,7 +32,7 @@ export default class TwinDynamicObjects extends THREE.InstancedMesh {
     }
 
     removeObject(object) {
-        let currentContainer = this.objects.get(object.code);
+        let currentObject = this.objects.get(object.code);
         const matrix = new THREE.Matrix4();
 
         matrix.set(0, 0, 0, 0,
@@ -40,14 +40,15 @@ export default class TwinDynamicObjects extends THREE.InstancedMesh {
             0, 0, 0, 0,
             0, 0, 0, 0);
 
-        this.setMatrixAt(currentContainer.index, matrix);
+        this.setMatrixAt(currentObject.index, matrix);
         this.instanceMatrix.needsUpdate = true;
-        this.objects.delete(currentContainer.code);
+        this.objects.delete(currentObject.code);
     }
 
     /*
     updatePosition(object, newPosition) {
         // TODO
+        let currentObject = this.objects.get(object.code);
     }
     */
 
