@@ -25,7 +25,8 @@ const buildingsProperties = {
   altitude: 0.1,
   material: {
     color: "#ff0000",
-    texture: "./building.png",
+    textureTop: "./plainroof.jpg",
+    textureSide: "./building.png",
   },
 };
 
@@ -42,7 +43,7 @@ const gardensProperties = {
   altitude: 0.1,
   material: {
     color: "#32CD32",
-    texture: "./garden.jpg",
+    textureTop: "./garden.jpg",
   },
 };
 
