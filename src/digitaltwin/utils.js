@@ -1,7 +1,6 @@
 import { reproject } from "reproject";
 import proj4 from "proj4";
 import * as THREE from "three"
-//import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
 
 
 export function convertGeoJsonToWorldUnits(geojson) {

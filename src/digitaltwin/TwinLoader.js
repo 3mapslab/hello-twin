@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import * as utils from "./utils.js";
-//import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
+import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { KMZLoader } from 'three/examples/jsm/loaders/KMZLoader.js';
 
@@ -32,7 +32,6 @@ export default class TwinLoader {
             for (feature of geo.features) {
                 feature.properties = Object.assign({}, properties, feature.properties);
                 shape = this.createShape(feature);
-                console.log(shape)
                 geometries.push(shape);
                 shape.dispose();
             }
@@ -135,14 +134,14 @@ export default class TwinLoader {
 
 
     mergeGeometries(geometries, properties) {
-        var mergedGeometries = utils.mergeBufferGeometries(geometries, false);
+        var mergedGeometries = BufferGeometryUtils.mergeBufferGeometries(geometries, false);
         ++offset;
         
         let material = new THREE.MeshBasicMaterial({
-            'color': properties.material.color,
-            'polygonOffset': true,
-            'polygonOffsetUnits': -1 * offset,
-            'polygonOffsetFactor': -1,
+                'color': properties.material.color,
+                'polygonOffset': true,
+                'polygonOffsetUnits': -1 * offset,
+                'polygonOffsetFactor': -1,
         });
 
         if (properties.material.texture) {
@@ -153,39 +152,16 @@ export default class TwinLoader {
             text.minFilter = THREE.LinearFilter;
             material.map = text;
         }
-        
-        /*
-       let faceCount = mergedGeometries.attributes.position.array.length / 3 / 3;
-       let materials = [];
 
-       for(let i = 0; i < faceCount; ++i) {
-           // each face has 3 vertices, with 3 coordinates each
-           let normals = mergedGeometries.attributes.normal.array;
-           let isTopFace = true;
-           for(let j = i*9; j < i*9+9; j+=3) {
-               // perpendicular
-               if(! (normals[j] == 0 && normals[j+1] != 0 && normals[j+2] == 0))
-                   isTopFace = false;
-           }
-           if (isTopFace) {
-               console.log("top");
-               materials.push(new THREE.MeshBasicMaterial({
-                   color: "green",
-               }));
-
-           } else {
-               materials.push(new THREE.MeshBasicMaterial({
-                   color: properties.material.color,
-               }));
-           }
-       }
-       */
+        console.log(material.map)
 
         var mergedMesh = new THREE.Mesh(mergedGeometries, material);
         mergedMesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
         mergedMesh.updateMatrix();
 
-        if (properties.material.texture) this.adjustTextureSideRepeat(mergedMesh, 256);
+        if (properties.material.texture) {
+            this.adjustTextureSideRepeat(mergedMesh, 256);
+        }
 
         mergedMesh.geometry.dispose();
         mergedMesh.material.dispose();
@@ -225,7 +201,7 @@ export default class TwinLoader {
             depth: feature.properties.depth,
             bevelEnabled: false,
             bevelSegments: 1,
-            steps: 5,
+            steps: 1,
             bevelSize: 0,
             bevelThickness: 1
         };
