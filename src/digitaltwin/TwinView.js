@@ -5,7 +5,7 @@ import { MapBoxProvider } from "./GeoThree/providers/MapBoxProvider";
 import { UnitsUtils } from "./GeoThree/utils/UnitsUtils";
 import TwinEvent from "./TwinEvent";
 import TwinLoader from './TwinLoader';
-import TwinContainers from "./TwinContainers";
+import TwinDynamicObjects from "./TwinDynamicObjects";
 import * as utils from "./utils.js";
 import { point } from "@turf/helpers";
 import * as turf from "@turf/turf";
@@ -15,6 +15,7 @@ const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9
 const tileLevel = 18;
 const removeDistance = 1000;
 const far = 2500;
+var alreadyLoadedInitialCells = false;
 //The channels to subscribe for realtime updates
 const CONTAINERS_CHANNEL = "containers";
 
@@ -152,7 +153,7 @@ export default class TwinView {
 
         let count = 5000;
 
-        return new TwinContainers(geometry, material, count, this.coords);
+        return new TwinDynamicObjects(geometry, material, count, this.coords);
     }
 
     activateSockets() {
@@ -161,13 +162,28 @@ export default class TwinView {
         let that = this;
 
         SocketServiceHelper._connection.on(CONTAINERS_CHANNEL, function (message) {
-            if (message.operation == "ADD") {
-                let company = message.operator;
-                that.containers.get(company).addContainer(message);
+            if (message.operation == "INITIAL_CELLS" && alreadyLoadedInitialCells == false) {                alreadyLoadedInitialCells = true;
+                let data = {};
+                for (let i = 0; i < message.occupiedCells.length; i++) {
+                    let cell = message.occupiedCells[i];
+                    for(let j=0; j<cell.containers.length; j++) {
+                        data.code = cell.containers[j].info.code;
+                        data.operator = cell.containers[j].info.operator;
+                        data.level = cell.containers[j].level;
+                        data.height = cell.containers[j].height;
+                        data.geometry = cell.geometry;
+                        that.containers.get(data.operator).addObject(data);
+                        data = {};
+                    }
+                }
             }
-            if (message.operation == "REMOVE") {
+            else if (message.operation == "ADD") {
                 let company = message.operator;
-                that.containers.get(company).removeContainer(message);
+                that.containers.get(company).addObject(message);
+            }
+            else if (message.operation == "REMOVE") {
+                let company = message.operator;
+                that.containers.get(company).removeObject(message);
             }
         });
     }
@@ -275,8 +291,6 @@ export default class TwinView {
                     if (!geojson || !geojson.features || geojson.features.length == 0) {
                         return;
                     }
-
-                    console.log(geojson)
 
                     let mesh;
 

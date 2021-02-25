@@ -25,7 +25,7 @@ export default class TwinLoader {
         if (type == "INSTANCED") {
             return this.loadLayerInstancedMesh(geojson, properties);
         }
-        if (type == "CLONED") {
+        if (type == "GLB") {
             return this.loadLayerMultiGLB(geojson, properties);
         } else {
 
