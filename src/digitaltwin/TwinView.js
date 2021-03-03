@@ -1,11 +1,11 @@
 import * as THREE from "three";
 import CameraControls from "camera-controls";
+import Containers from "./Containers"
 import { MapView } from "./GeoThree/MapView";
 import { MapBoxProvider } from "./GeoThree/providers/MapBoxProvider";
 import { UnitsUtils } from "./GeoThree/utils/UnitsUtils";
 import TwinEvent from "./TwinEvent";
 import TwinLoader from './TwinLoader';
-import TwinDynamicObjects from "./TwinDynamicObjects";
 import * as utils from "./utils.js";
 import { point } from "@turf/helpers";
 import * as turf from "@turf/turf";
@@ -15,13 +15,13 @@ const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9
 const tileLevel = 18;
 const removeDistance = 1000;
 const far = 2500;
-const parkCoords = new Map();
-parkCoords.set("TCN", [-8.701707154760918, 41.185679385734204]);
-parkCoords.set("TCS", [-8.684494412026263, 41.19254609010651]);
 
-var alreadyLoadedInitialCells = false;
 //The channels to subscribe for realtime updates
 const CONTAINERS_CHANNEL = "containers";
+
+
+// TODO - Connection to tos-simulator happens twice
+var alreadyLoadedInitialCells = false;
 
 CameraControls.install({ THREE: THREE });
 
@@ -76,12 +76,13 @@ export default class TwinView {
         this.layers = layerProps;
 
         this.constructContainers();
-
         this.activateSockets();
-
     }
 
+    // TODO - Improve hard-coded lines
     constructContainers() {
+
+        let containerLoader = new Containers(this.coords, this.scene);
 
         this.containers = new Map();
         let containersTCN = new Map();
@@ -90,100 +91,21 @@ export default class TwinView {
         this.containers.set("TCS", containersTCS);
 
         for (let [name, park] of this.containers.entries()) {
-            park.set("EVERGREEN", this.initContainers("evergreen", name));
-            park.set("apl", this.initContainers("apl",name));
-            park.set("msc", this.initContainers("msc", name));
-            park.set("uniglory", this.initContainers("uniglory", name));
-            park.set("Hamburg Sud", this.initContainers("hamburg", name));
-            park.set("hapag", this.initContainers("hapag", name));
-            park.set("hanjin", this.initContainers("hanjin", name));
-            park.set("ttc", this.initContainers("ttc", name));
-            park.set("maersk", this.initContainers("maersk", name));
-            park.set("one", this.initContainers("one", name));
-            park.set("maersknew", this.initContainers("maersknew", name));
+            park.set("EVERGREEN", containerLoader.initContainers("evergreen", name));
+            park.set("apl", containerLoader.initContainers("apl", name));
+            park.set("msc", containerLoader.initContainers("msc", name));
+            park.set("uniglory", containerLoader.initContainers("uniglory", name));
+            park.set("Hamburg Sud", containerLoader.initContainers("hamburg", name));
+            park.set("hapag", containerLoader.initContainers("hapag", name));
+            park.set("hanjin", containerLoader.initContainers("hanjin", name));
+            park.set("ttc", containerLoader.initContainers("ttc", name));
+            park.set("maersk", containerLoader.initContainers("maersk", name));
+            park.set("one", containerLoader.initContainers("one", name));
+            park.set("maersknew", containerLoader.initContainers("maersknew", name));
             park.forEach((company) => {
                 this.scene.add(company);
             });
         }
-    }
-
-    initContainers(companyName, parkName) {
-        let geometry = new THREE.BoxBufferGeometry(
-            6.06, 2.6, 2.44
-        );
-
-        let textBack = new THREE.TextureLoader().load("./containerTextures/back" + companyName + ".jpg");
-        let textDoor = new THREE.TextureLoader().load("./containerTextures/door" + companyName + ".jpg");
-        let textUp = new THREE.TextureLoader().load("./containerTextures/up" + companyName + ".jpg");
-        let textSide = new THREE.TextureLoader().load("./containerTextures/side" + companyName + ".jpg");
-
-        let material = [
-            new THREE.MeshBasicMaterial({
-                //'color': "black",
-                'map': textBack,
-                'polygonOffset': true,
-                'polygonOffsetUnits': -1,
-                'polygonOffsetFactor': -1,
-            }),
-            new THREE.MeshBasicMaterial({
-                //'color': "black",
-                'map': textDoor,
-                'polygonOffset': true,
-                'polygonOffsetUnits': -1,
-                'polygonOffsetFactor': -1,
-            }),
-            new THREE.MeshBasicMaterial({
-                //'color': "black",
-                'map': textUp,
-                'polygonOffset': true,
-                'polygonOffsetUnits': -1,
-                'polygonOffsetFactor': -1,
-            }),
-            new THREE.MeshBasicMaterial({
-                //'color': "black",
-                'map': textUp,
-                'polygonOffset': true,
-                'polygonOffsetUnits': -1,
-                'polygonOffsetFactor': -1,
-            }),
-            new THREE.MeshBasicMaterial({
-                //'color': "black",
-                'map': textSide,
-                'polygonOffset': true,
-                'polygonOffsetUnits': -1,
-                'polygonOffsetFactor': -1,
-            }),
-            new THREE.MeshBasicMaterial({
-                //'color': "black",
-                'map': textSide,
-                'polygonOffset': true,
-                'polygonOffsetUnits': -1,
-                'polygonOffsetFactor': -1,
-            }),
-        ];
-
-        let count = 5000;
-
-        let instancedMesh = new TwinDynamicObjects(geometry, material, count, this.coords);
-
-        // Adding 2 levels of detail
-        const lod = new THREE.LOD();
-        lod.addLevel(instancedMesh, 0);
-        // empty cube 
-        const cubeGeometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
-        const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-        
-        // Obtain coordinates of respective park
-        let coords = parkCoords.get(parkName);
-        let units = utils.convertCoordinatesToUnits(coords[0], coords[1]);
-        var targetPosition = new THREE.Vector3(units[0] - this.coords.x, 3, -(units[1] - this.coords.y));
-        
-        lod.addLevel(cube, 1200);
-        lod.position.copy(targetPosition);
-        console.log(targetPosition)
-        this.scene.add(lod);
-        return instancedMesh;
     }
 
     activateSockets() {
@@ -192,13 +114,15 @@ export default class TwinView {
         let that = this;
 
         SocketServiceHelper._connection.on(CONTAINERS_CHANNEL, function (message) {
-            if (message.operation == "INITIAL_CELLS" && alreadyLoadedInitialCells == false) {                alreadyLoadedInitialCells = true;
+            if (message.operation == "INITIAL_CELLS" && alreadyLoadedInitialCells == false) {
+
+                alreadyLoadedInitialCells = true;
                 let data = {};
                 for (let i = 0; i < message.occupiedCells.length; i++) {
                     let cell = message.occupiedCells[i];
                     let parkName = cell.code.split("-")[0];
 
-                    for(let j=0; j<cell.containers.length; j++) {
+                    for (let j = 0; j < cell.containers.length; j++) {
                         data.code = cell.containers[j].info.code;
                         data.operator = cell.containers[j].info.operator;
                         data.level = cell.containers[j].level;
@@ -222,7 +146,7 @@ export default class TwinView {
                 let park = that.containers.get(parkName);
                 park.get(company).removeObject(message);
             }
-            
+
         });
     }
 
@@ -333,37 +257,27 @@ export default class TwinView {
                     let mesh;
 
                     if (this.layers[i].type == "GLTF" || this.layers[i].type == "KMZ") {
-                        mesh = await this.loadSingleObject(this.layers[i]);
+                        mesh = this.loadSingleObject(this.layers[i]);
                         this.scene.add(mesh);
                         this.storeMesh(mesh, x, y);
-                    }
-                    if (this.layers[i].type == "CLONED") {
+
+                    } else if (this.layers[i].type == "CLONED") {
                         this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
+
                     } else {
                         mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
                         this.scene.add(mesh);
-                        /*
-                        const wireframe = new THREE.WireframeGeometry( mesh.geometry );
-                        const line = new THREE.LineSegments( wireframe );
-                        line.material.depthTest = false;
-                        line.material.opacity = 0.25;
-                        line.material.transparent = true;
-                        line.rotateOnAxis(new THREE.Vector3(1,0,0), -Math.PI/2)
-                        this.scene.add( line );
-                        */
                         this.storeMesh(mesh, x, y);
                     }
-                    //mesh.geometry.dispose();
-                    //mesh.material.dispose();
                 })
                 .catch((error) => console.log(error))
 
         }
 
-
         this.removeFarawayTiles(x, y);
     }
 
+    // Removes meshes on tiles that are 1km away
     removeFarawayTiles(x, y) {
         let lon = utils.tile2long(x, tileLevel);
         let lat = utils.tile2lat(y, tileLevel);
@@ -373,21 +287,19 @@ export default class TwinView {
 
         for (let [key, value] of this.tiles.entries()) {
 
-            let x2 = key.split(",")[0];
-            let y2 = key.split(",")[1];
-            let lon2 = utils.tile2long(x2, tileLevel);
-            let lat2 = utils.tile2lat(y2, tileLevel);
-            let point = turf.point([lon2, lat2])
+            let currentX = key.split(",")[0];
+            let currentY = key.split(",")[1];
+            let currentLon = utils.tile2long(currentX, tileLevel);
+            let currentLat = utils.tile2lat(currentY, tileLevel);
+            let point = turf.point([currentLon, currentLat])
             let poly = turf.polygon(buffered.geometry.coordinates);
 
             if (!turf.booleanPointInPolygon(point, poly)) {
                 for (let i = 0; i < value.length; ++i) {
-                    //value[i].geometry.dispose();
-                    //value[i].material.dispose();
                     this.scene.remove(value[i]);
                 }
                 this.tiles.set(key, []);
-                this.map.childrenClear(x2, y2);
+                this.map.childrenClear(currentX, currentY);
             }
         }
     }
@@ -403,30 +315,6 @@ export default class TwinView {
             tile.push(mesh);
             this.tiles.set(key, tile);
         }
-    }
-
-    coordsToTile(lon, lat, zoom) {
-        let x = Math.floor((lon + 180) / 360 * Math.pow(2, zoom))
-        let y = Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom))
-        return [x, y];
-    }
-
-    calcTilePolygon(zoom, x, y) {
-        let topLeft = utils.tileToCoords(zoom, x, y);
-        let topRight = utils.tileToCoords(zoom, x + 1, y);
-        let bottomLeft = utils.tileToCoords(zoom, x, y + 1);
-        let bottomRight = utils.tileToCoords(zoom, x + 1, y + 1);
-
-        let geojson = {
-            "type": "Feature",
-            "geometry": {
-                "type": "Polygon",
-                "coordinates": [[bottomLeft, bottomRight, topRight, topLeft, bottomLeft]]
-            },
-            "properties": {}
-        }
-
-        return geojson;
     }
 
     loadSingleObject(objectInfo, coordinates) {

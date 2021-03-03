@@ -11,6 +11,10 @@ export default class TwinDynamicObjects extends THREE.InstancedMesh {
     }
 
     addObject(object) {
+
+        // TODO - When adding, check first empty position
+        // TODO - Create new map when limit has been reached
+
         object.index = this.objects.size;
         let lon = object.geometry.coordinates[0];
         let lat = object.geometry.coordinates[1];
@@ -19,7 +23,7 @@ export default class TwinDynamicObjects extends THREE.InstancedMesh {
         const dummy = new THREE.Object3D();
         dummy.position.set(
             units[0] - this.center.x,
-            object.height + 2,
+            object.height + 2, // terrain height
             -(units[1] - this.center.y)
         );
 
@@ -35,21 +39,15 @@ export default class TwinDynamicObjects extends THREE.InstancedMesh {
         let currentObject = this.objects.get(object.code);
         const matrix = new THREE.Matrix4();
 
-        matrix.set(0, 0, 0, 0,
+        matrix.set(
             0, 0, 0, 0,
             0, 0, 0, 0,
-            0, 0, 0, 0);
+            0, 0, 0, 0,
+            0, 0, 0, 0
+        );
 
         this.setMatrixAt(currentObject.index, matrix);
         this.instanceMatrix.needsUpdate = true;
         this.objects.delete(currentObject.code);
     }
-
-    /*
-    updatePosition(object, newPosition) {
-        // TODO
-        let currentObject = this.objects.get(object.code);        
-    }
-    */
-
 }
