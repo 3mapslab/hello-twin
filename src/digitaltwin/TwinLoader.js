@@ -1,9 +1,7 @@
 import * as THREE from "three";
 import * as utils from "./utils.js";
-//import { BufferGeometryUtils } from "./BufferGeometryUtils.js";
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { KMZLoader } from 'three/examples/jsm/loaders/KMZLoader.js';
-
 
 var offset = 0;
 
@@ -24,9 +22,7 @@ export default class TwinLoader {
 
         if (type == "INSTANCED") {
             return this.loadLayerInstancedMesh(geojson, properties);
-        }
-        if (type == "GLB") {
-            return this.loadLayerMultiGLB(geojson, properties);
+        
         } else {
 
             for (feature of geo.features) {
@@ -36,53 +32,56 @@ export default class TwinLoader {
                 shape.dispose();
             }
 
-            //utils.mergeBufferGeometries(geometries);
-
-            return this.mergeGeometries(geometries, properties);
+            return this.mergeMeshes(geometries, properties);
         }
     }
 
     async loadLayerInstancedMesh(geojson, properties) {
 
         if (geojson == null || geojson.features == null) return;
+        
         let count = geojson.features.length;
-
         let geometry;
+
+
+        // Check if layer has a defined model
         if (properties.model) {
-            if (properties.model.split('.').pop() == "json") geometry = await this.loadGeometry(properties.model);
-        }
-        else {
-            geometry = new THREE.BoxBufferGeometry(
-                properties.width, properties.height, properties.depth
-            );
+            // Check type of model
+            if (properties.model.split('.').pop() == "json") {
+                geometry = await this.loadGeometry(properties.model);
+            }
+        
+        } else { // If model is not defined, display basic box of size 5x5x5
+            geometry = new THREE.BoxBufferGeometry(5,5,5);
         }
 
         let material = new THREE.MeshStandardMaterial({
-            'color': properties.material.color,
+            'color': properties ? properties.material.color : 'red',
             'polygonOffset': true,
             'polygonOffsetUnits': -1 * offset,
             'polygonOffsetFactor': -1,
         });
 
         if (properties.material.texture) {
-            let text = new THREE.TextureLoader().load(properties.material.texture);
+            let texture = new THREE.TextureLoader().load(properties.material.texture);
             material.color = null;
-            material.map = text;
+            material.map = texture;
         }
 
         let mesh = new THREE.InstancedMesh(geometry, material, count);
 
         const dummy = new THREE.Object3D();
+        
+        // Set position of every mesh in this instanced mesh
         for (let i = 1; i < count; i++) {
-            let feature = geojson.features[i];
-            let coordX = feature.geometry.coordinates[0];
-            let coordY = feature.geometry.coordinates[1];
-            let coordZ = feature.geometry.coordinates[2] || Math.floor(Math.random() * 5) * (properties.height + 0.2);
-            if (properties.model) coordZ = properties.altitude || 0;
 
-            let units = utils.convertCoordinatesToUnits(coordX, coordY);
-            dummy.position.set(units[0] - this.center.x, coordZ, -(units[1] - this.center.y));
-            dummy.rotation.set(0, Math.PI / 4.5, 0);
+            let feature = geojson.features[i];
+            let units = utils.convertCoordinatesToUnits(
+                feature.geometry.coordinates[0],
+                feature.geometry.coordinates[1]
+            );
+
+            dummy.position.set(units[0] - this.center.x, 0, -(units[1] - this.center.y));
             dummy.updateMatrix();
             mesh.setMatrixAt(i++, dummy.matrix);
         }
@@ -92,83 +91,26 @@ export default class TwinLoader {
         return mesh;
     }
 
-    async loadLayerMultiGLB(geojson, properties) {
+    mergeMeshes(geometries, properties) {
 
-        if (geojson == null || geojson.features == null) return;
-        let count = geojson.features.length;
-
-        for (let i = 1; i < count; i++) {
-            new GLTFLoader().load(
-                properties.model,
-
-                // onLoad callback
-                (gltf) => {
-                        let feature = geojson.features[i];
-                        let coordX = feature.geometry.coordinates[0];
-                        let coordY = feature.geometry.coordinates[1];
-                        let units = utils.convertCoordinatesToUnits(coordX, coordY);
-                        var targetPosition = new THREE.Vector3(units[0] - this.center.x, 3, -(units[1] - this.center.y));
-
-                        // Adding 2 levels of detail
-                        const lod = new THREE.LOD();
-                        lod.addLevel(gltf.scene, 0);
-                        // empty cube 
-                        const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
-                        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                        const cube = new THREE.Mesh(geometry, material);
-                        lod.addLevel(cube, 380);
-                        lod.position.copy(targetPosition);
-                        this.scene.add(lod);
-                },
-
-                undefined,
-
-                // onError callback
-                function (err) {
-                    console.log("An error happened", err);
-                }
-            );
-        }
-
-    }
-
-    mergeGeometries(geometries, properties) {
-
-        var mergedGeometries = utils.mergeBufferGeometries(geometries, false);
+        var mergedGeometries = this.mergeBufferGeometries(geometries, false);
         ++offset;
-        
+
         let materialTop = new THREE.MeshBasicMaterial({
             'color': properties.material.color,
             'polygonOffset': true,
             'polygonOffsetUnits': -1 * offset,
             'polygonOffsetFactor': -1,
         });
-        
-        let materialSide = new THREE.MeshBasicMaterial({
-            'color': properties.material.color,
-            'polygonOffset': true,
-            'polygonOffsetUnits': -1 * offset,
-            'polygonOffsetFactor': -1,
-            'map': null,
-        });
 
+        let materialSide = materialTop.clone();
 
         if (properties.material.textureTop) {
-            let texture = new THREE.TextureLoader().load(properties.material.textureTop);
-            materialTop.color = null;
-            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            texture.flipY = false;
-            texture.minFilter = THREE.LinearFilter;
-            materialTop.map = texture;
+            this.createMaterial(materialTop, properties.material.textureTop);
         }
 
         if (properties.material.textureSide) {
-            let texture = new THREE.TextureLoader().load(properties.material.textureSide);
-            materialSide.color = null;
-            texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-            texture.flipY = false;
-            texture.minFilter = THREE.LinearFilter;
-            materialSide.map = texture;
+            this.createMaterial(materialSide, properties.material.textureSide);
         }
 
         let materials = [materialTop, materialSide];
@@ -176,66 +118,95 @@ export default class TwinLoader {
         var mergedMesh = new THREE.Mesh(mergedGeometries, materials);
         mergedMesh.rotateOnAxis(new THREE.Vector3(1, 0, 0), - Math.PI / 2);
         mergedMesh.updateMatrix();
-        
-        if (properties.material.textureTop) {
-            this.adjustTextureTopRepeat(mergedMesh, 256);
-        }
-        if (properties.material.textureSide) {
-            this.adjustTextureSideRepeat(mergedMesh, 256);
-        }
 
         mergedMesh.geometry.dispose();
-        //mergedMesh.material.dispose();
         return mergedMesh;
     }
 
-    adjustTextureTopRepeat(mesh, textureSize) {
+    mergeBufferGeometries(geometries) {
 
-        mesh.geometry.computeBoundingBox();
-        let max = mesh.geometry.boundingBox.max;
-        let min = mesh.geometry.boundingBox.min;
+        const NORMAL_COORDS = 3;
+        const UV_COORDS = 2;
 
-        let height = max.y - min.y;
-        let width = max.x - min.x;
+        let mergedGeometry = new THREE.BufferGeometry();
+        let topNormal = [];
+        let sideNormal = [];
+        let topPosition = [];
+        let sidePosition = [];
+        let topUV = [];
+        let sideUV = [];
 
-        let repeatValX = width / textureSize;
-        let repeatValY = height / textureSize;
+        for (let i = 0; i < geometries.length; ++i) {
 
-        if (repeatValX < 0.1) {
-            repeatValX *= 10;
-        } else if (repeatValX > 0.45) {
-            repeatValX /= 2;
+            let geometry = geometries[i];
+            if (geometry.attributes.normal == null) {
+                return;
+            }
+
+            let normal = geometry.attributes.normal.array;
+            let position = geometry.attributes.position.array;
+            let uv = geometry.attributes.uv.array;
+
+            // Iterate through faces - each face has 3 vertices with 3 positions each
+            for (let j = 0; j < position.length; j += 9) {
+
+                let z1 = position[j + 2],
+                    z2 = position[j + 5],
+                    z3 = position[j + 8];
+
+                // If the 3 vertices have the same Z, it's a top/bottom face
+                if ((z1 == z2) && (z2 == z3)) {
+
+                    this.setAttributes(j, topPosition, topNormal, topUV,
+                        position, normal, uv);
+
+                // If the 3 vertices don't have the same Z, it's a side face
+                } else {
+
+                    this.setAttributes(j, sidePosition, sideNormal, sideUV,
+                        position, normal, uv);
+                }
+            }
         }
-        if (repeatValY < 0.1) {
-            repeatValY *= 10;
-        }
 
-        mesh.material[0].map.repeat.set(0.05, 0.2);
+        let verticesTop = topNormal.length / NORMAL_COORDS;
+        let verticesSide = sideNormal.length / NORMAL_COORDS;
+        let verticesTotal = (topNormal.length + sideNormal.length) / NORMAL_COORDS;
+
+        // Concatenate top and side arrays
+        let normal = new Float32Array(verticesTotal * NORMAL_COORDS);
+        normal.set(topNormal);
+        normal.set(sideNormal, verticesTop * NORMAL_COORDS);
+
+        let position = new Float32Array(verticesTotal * NORMAL_COORDS);
+        position.set(topPosition);
+        position.set(sidePosition, verticesTop * NORMAL_COORDS);
+
+        let uv = new Float32Array(verticesTotal * UV_COORDS);
+        uv.set(topUV);
+        uv.set(sideUV, verticesTop * UV_COORDS);
+
+        mergedGeometry.setAttribute("position", new THREE.BufferAttribute(position, NORMAL_COORDS));
+        mergedGeometry.setAttribute("normal", new THREE.BufferAttribute(normal, NORMAL_COORDS));
+        mergedGeometry.setAttribute("uv", new THREE.BufferAttribute(uv, UV_COORDS));
+
+        // Top faces get material 0, side faces get material 1
+        mergedGeometry.addGroup(0, verticesTop, 0);
+        mergedGeometry.addGroup(verticesTop, verticesSide, 1)
+
+        return mergedGeometry;
     }
 
+    // Concats the values of position, normal and uvs to the new respective arrays
+    setAttributes(index, curPosition, curNormal, curUV, position, normal, uv) {
 
-    adjustTextureSideRepeat(mesh, textureSize) {
+        curPosition.push.apply(curPosition, position.slice(index, index + 9));
+        curNormal.push.apply(curNormal, normal.slice(index, index + 9));
 
-        mesh.geometry.computeBoundingBox();
-        let max = mesh.geometry.boundingBox.max;
-        let min = mesh.geometry.boundingBox.min;
-
-        let height = max.z - min.z;
-        let width = max.x - min.x;
-
-        let repeatValX = width / textureSize;
-        let repeatValY = height / textureSize;
-
-        if (repeatValX < 0.1) {
-            repeatValX *= 10;
-        } else if (repeatValX > 0.45) {
-            repeatValX /= 2;
-        }
-        if (repeatValY < 0.1) {
-            repeatValY *= 10;
-        }
-
-        mesh.material[1].map.repeat.set(0.05, 0.2);
+        // UVs only have 2 coordinates instead of 3
+        // so the UV array is 2/3rds the size of the normals/position arrays
+        let k = index * 2 / 3;
+        curUV.push.apply(curUV, uv.slice(k, k + 6));
     }
 
     createShape(feature) {
@@ -323,23 +294,32 @@ export default class TwinLoader {
         });
     }
 
-    async loadGLB(object, coordinates) {
+    async loadModel(path, coordinates, type) {
+
+        let loader;
+
+        // Create corresponding loader for this type of file
+        if (type == "kmz") {
+            loader = new KMZLoader();
+        }
+        else if (type == "glb") {
+            loader = new GLTFLoader();
+        }
 
         let altitude = 0;
 
         await new Promise(() => {
-            const loader = new GLTFLoader();
             loader.load(
-                object,
+                path,
 
-                (gltf) => {
+                (model) => {
 
                     var units = utils.convertCoordinatesToUnits(coordinates[0], coordinates[1]);
                     var targetPosition = new THREE.Vector3(units[0] - this.center.x, altitude, -(units[1] - this.center.y));
 
                     // Adding 2 levels of detail
                     const lod = new THREE.LOD();
-                    lod.addLevel(gltf.scene, 0);
+                    lod.addLevel(model.scene, 0);
                     // empty cube 
                     const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
                     const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
@@ -349,7 +329,8 @@ export default class TwinLoader {
                     this.scene.add(lod);
 
                 },
-                undefined,
+
+                undefined, // onProgress callback
 
                 (error) => {
                     console.error(error);
@@ -358,39 +339,17 @@ export default class TwinLoader {
         });
     }
 
-    async loadKMZ(object, coordinates) {
+    createMaterial(material, texturePath) {
 
-        let altitude = 0;
+        let texture = new THREE.TextureLoader().load(texturePath);
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.flipY = false;
+        texture.minFilter = THREE.LinearFilter;
 
-        await new Promise(() => {
-            const loader = new KMZLoader();
-            loader.load(
-                object,
+        material.color = null;
+        material.map = texture;
+        material.map.repeat.set(0.05, 0.2);
 
-                (kmz) => {
-
-                    var units = utils.convertCoordinatesToUnits(coordinates[0], coordinates[1]);
-                    var targetPosition = new THREE.Vector3(units[0] - this.center.x, altitude, -(units[1] - this.center.y));
-
-                    // Adding 2 levels of detail
-                    const lod = new THREE.LOD();
-                    lod.addLevel(kmz.scene, 0);
-                    // empty cube 
-                    const geometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
-                    const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-                    const cube = new THREE.Mesh(geometry, material);
-                    lod.addLevel(cube, 1000);
-                    lod.position.copy(targetPosition);
-                    this.scene.add(lod);
-
-                },
-                undefined,
-
-                (error) => {
-                    console.error(error);
-                }
-            );
-        });
     }
 
 }
