@@ -15,6 +15,10 @@ const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9
 const tileLevel = 18;
 const removeDistance = 1000;
 const far = 2500;
+const parkCoords = new Map();
+parkCoords.set("TCN", [-8.701707154760918, 41.185679385734204]);
+parkCoords.set("TCS", [-8.684494412026263, 41.19254609010651]);
+
 var alreadyLoadedInitialCells = false;
 //The channels to subscribe for realtime updates
 const CONTAINERS_CHANNEL = "containers";
@@ -78,25 +82,32 @@ export default class TwinView {
     }
 
     constructContainers() {
-        this.containers = new Map();
-        this.containers.set("EVERGREEN", this.initContainers("evergreen"));
-        this.containers.set("apl", this.initContainers("apl"));
-        this.containers.set("msc", this.initContainers("msc"));
-        this.containers.set("uniglory", this.initContainers("uniglory"));
-        this.containers.set("Hamburg Sud", this.initContainers("hamburg"));
-        this.containers.set("hapag", this.initContainers("hapag"));
-        this.containers.set("hanjin", this.initContainers("hanjin"));
-        this.containers.set("ttc", this.initContainers("ttc"));
-        this.containers.set("maersk", this.initContainers("maersk"));
-        this.containers.set("one", this.initContainers("one"));
-        this.containers.set("maersknew", this.initContainers("maersknew"));
 
-        this.containers.forEach((company) => {
-            this.scene.add(company);
-        })
+        this.containers = new Map();
+        let containersTCN = new Map();
+        this.containers.set("TCN", containersTCN);
+        let containersTCS = new Map();
+        this.containers.set("TCS", containersTCS);
+
+        for (let [name, park] of this.containers.entries()) {
+            park.set("EVERGREEN", this.initContainers("evergreen", name));
+            park.set("apl", this.initContainers("apl",name));
+            park.set("msc", this.initContainers("msc", name));
+            park.set("uniglory", this.initContainers("uniglory", name));
+            park.set("Hamburg Sud", this.initContainers("hamburg", name));
+            park.set("hapag", this.initContainers("hapag", name));
+            park.set("hanjin", this.initContainers("hanjin", name));
+            park.set("ttc", this.initContainers("ttc", name));
+            park.set("maersk", this.initContainers("maersk", name));
+            park.set("one", this.initContainers("one", name));
+            park.set("maersknew", this.initContainers("maersknew", name));
+            park.forEach((company) => {
+                this.scene.add(company);
+            });
+        }
     }
 
-    initContainers(companyName) {
+    initContainers(companyName, parkName) {
         let geometry = new THREE.BoxBufferGeometry(
             6.06, 2.6, 2.44
         );
@@ -153,7 +164,26 @@ export default class TwinView {
 
         let count = 5000;
 
-        return new TwinDynamicObjects(geometry, material, count, this.coords);
+        let instancedMesh = new TwinDynamicObjects(geometry, material, count, this.coords);
+
+        // Adding 2 levels of detail
+        const lod = new THREE.LOD();
+        lod.addLevel(instancedMesh, 0);
+        // empty cube 
+        const cubeGeometry = new THREE.BoxGeometry(0.01, 0.01, 0.01);
+        const cubeMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+        
+        // Obtain coordinates of respective park
+        let coords = parkCoords.get(parkName);
+        let units = utils.convertCoordinatesToUnits(coords[0], coords[1]);
+        var targetPosition = new THREE.Vector3(units[0] - this.coords.x, 3, -(units[1] - this.coords.y));
+        
+        lod.addLevel(cube, 1200);
+        lod.position.copy(targetPosition);
+        console.log(targetPosition)
+        this.scene.add(lod);
+        return instancedMesh;
     }
 
     activateSockets() {
@@ -166,25 +196,33 @@ export default class TwinView {
                 let data = {};
                 for (let i = 0; i < message.occupiedCells.length; i++) {
                     let cell = message.occupiedCells[i];
+                    let parkName = cell.code.split("-")[0];
+
                     for(let j=0; j<cell.containers.length; j++) {
                         data.code = cell.containers[j].info.code;
                         data.operator = cell.containers[j].info.operator;
                         data.level = cell.containers[j].level;
                         data.height = cell.containers[j].height;
                         data.geometry = cell.geometry;
-                        that.containers.get(data.operator).addObject(data);
+                        let park = that.containers.get(parkName);
+                        park.get(data.operator).addObject(data);
                         data = {};
                     }
                 }
             }
             else if (message.operation == "ADD") {
+                let parkName = message.cell.split("-")[0];
                 let company = message.operator;
-                that.containers.get(company).addObject(message);
+                let park = that.containers.get(parkName);
+                park.get(company).addObject(message);
             }
             else if (message.operation == "REMOVE") {
+                let parkName = message.cell.split("-")[0];
                 let company = message.operator;
-                that.containers.get(company).removeObject(message);
+                let park = that.containers.get(parkName);
+                park.get(company).removeObject(message);
             }
+            
         });
     }
 
