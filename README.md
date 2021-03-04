@@ -22,7 +22,17 @@ node main.js
 ```
 npm install
 ```
+### Configs
+```
+In file HelloTwin.vue, in configs var, its necessary to define the initial position.
+
+Constructor example: 
+const configs = {
+   initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
+};
+```
 ### Compiles and hot-reloads for development
 ```
 npm run serve
 ```
+
