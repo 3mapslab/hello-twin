@@ -27,7 +27,7 @@ npm run serve
 
 ### Twin Initialization
 
-When initializing Hello-Twin, the initial position of the world must be sent in the configs object.
+When initializing Hello-Twin, the initial position of the world and development url must be sent in the configs object.
 
 Example: 
 ```
@@ -36,6 +36,7 @@ const configs = {
       lat: 41.185523935676713,
       lng: -8.7016652234108349
    },
+   url: 'http://localhost:8123/'
 };
 
 let twin = new TwinView(canvas, configs);
