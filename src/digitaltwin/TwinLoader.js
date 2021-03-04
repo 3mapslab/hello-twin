@@ -287,7 +287,7 @@ export default class TwinLoader {
                 undefined,
 
                 // onError callback
-                function (err) {
+                (err) => {
                     console.log("An error happened", err);
                 }
             );

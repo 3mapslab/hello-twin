@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import CameraControls from "camera-controls";
-import Containers from "./Containers"
+import Containers from "./Containers";
 import { MapView } from "./GeoThree/MapView";
 import { MapBoxProvider } from "./GeoThree/providers/MapBoxProvider";
 import { UnitsUtils } from "./GeoThree/utils/UnitsUtils";
@@ -9,19 +9,11 @@ import TwinLoader from './TwinLoader';
 import * as utils from "./utils.js";
 import { point } from "@turf/helpers";
 import * as turf from "@turf/turf";
-import SocketServiceHelper from "../helpers/realtime/socketservicehelper";
 
-const key = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
-const tileLevel = 18;
-const removeDistance = 1000;
-const far = 2500;
-
-//The channels to subscribe for realtime updates
-const CONTAINERS_CHANNEL = "containers";
-
-
-// TODO - Connection to tos-simulator happens twice
-var alreadyLoadedInitialCells = false;
+const KEY = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
+const TILE_LEVEL = 18;
+const REMOVE_DISTANCE = 1000;
+const FAR = 2500;
 
 CameraControls.install({ THREE: THREE });
 
@@ -57,12 +49,13 @@ export default class TwinView {
 
         // Puxar o mapa da posição original para o centro do mundo (0,0,0)
         this.coords = UnitsUtils.datumsToSpherical(this.configs.initialPosition.lat, this.configs.initialPosition.lng);
+        this.url = this.configs.url;
         //Init map
         this.map = null;
         this.initMap();
 
         //Fog
-        this.scene.fog = new THREE.Fog(0xFFFFFF, far / 3, far / 2);
+        this.scene.fog = new THREE.Fog(0xFFFFFF, FAR / 3, FAR / 2);
 
         //Events
         window.addEventListener('resize', this.onResize.bind(this), false);
@@ -75,79 +68,8 @@ export default class TwinView {
 
         this.layers = layerProps;
 
-        this.constructContainers();
-        this.activateSockets();
-    }
+        this.containers = new Containers(this.coords, this.scene);
 
-    // TODO - Improve hard-coded lines
-    constructContainers() {
-
-        let containerLoader = new Containers(this.coords, this.scene);
-
-        this.containers = new Map();
-        let containersTCN = new Map();
-        this.containers.set("TCN", containersTCN);
-        let containersTCS = new Map();
-        this.containers.set("TCS", containersTCS);
-
-        for (let [name, park] of this.containers.entries()) {
-            park.set("EVERGREEN", containerLoader.initContainers("evergreen", name));
-            park.set("apl", containerLoader.initContainers("apl", name));
-            park.set("msc", containerLoader.initContainers("msc", name));
-            park.set("uniglory", containerLoader.initContainers("uniglory", name));
-            park.set("Hamburg Sud", containerLoader.initContainers("hamburg", name));
-            park.set("hapag", containerLoader.initContainers("hapag", name));
-            park.set("hanjin", containerLoader.initContainers("hanjin", name));
-            park.set("ttc", containerLoader.initContainers("ttc", name));
-            park.set("maersk", containerLoader.initContainers("maersk", name));
-            park.set("one", containerLoader.initContainers("one", name));
-            park.set("maersknew", containerLoader.initContainers("maersknew", name));
-            park.forEach((company) => {
-                this.scene.add(company);
-            });
-        }
-    }
-
-    activateSockets() {
-        SocketServiceHelper.initialize();
-
-        let that = this;
-
-        SocketServiceHelper._connection.on(CONTAINERS_CHANNEL, function (message) {
-            if (message.operation == "INITIAL_CELLS" && alreadyLoadedInitialCells == false) {
-
-                alreadyLoadedInitialCells = true;
-                let data = {};
-                for (let i = 0; i < message.occupiedCells.length; i++) {
-                    let cell = message.occupiedCells[i];
-                    let parkName = cell.code.split("-")[0];
-
-                    for (let j = 0; j < cell.containers.length; j++) {
-                        data.code = cell.containers[j].info.code;
-                        data.operator = cell.containers[j].info.operator;
-                        data.level = cell.containers[j].level;
-                        data.height = cell.containers[j].height;
-                        data.geometry = cell.geometry;
-                        let park = that.containers.get(parkName);
-                        park.get(data.operator).addObject(data);
-                        data = {};
-                    }
-                }
-            }
-            else if (message.operation == "ADD") {
-                let parkName = message.cell.split("-")[0];
-                let company = message.operator;
-                let park = that.containers.get(parkName);
-                park.get(company).addObject(message);
-            }
-            else if (message.operation == "REMOVE") {
-                let parkName = message.cell.split("-")[0];
-                let company = message.operator;
-                let park = that.containers.get(parkName);
-                park.get(company).removeObject(message);
-            }
-
-        });
     }
 
     initCamera() {
@@ -195,7 +117,7 @@ export default class TwinView {
 
     initMap() {
         // Create a map tiles provider object
-        var provider = new MapBoxProvider(key, "mapbox/streets-v10", MapBoxProvider.STYLE);
+        var provider = new MapBoxProvider(KEY, "mapbox/streets-v10", MapBoxProvider.STYLE);
 
         // Create the map view and add it to your THREE scene
         this.map = new MapView(MapView.PLANAR, provider, this.fetchEvent);
@@ -235,14 +157,14 @@ export default class TwinView {
 
         let x = tile.x;
         let y = tile.y;
-        if (tile.zoom != tileLevel) {
+        if (tile.zoom != TILE_LEVEL) {
             return;
         }
 
         for (let i = 0; i < this.layers.length; ++i) {
 
             // Layers with many objects
-            let url = `http://localhost:8123/${this.layers[i].url}/${tileLevel}/${x}/${y}.geojson`
+            let url = `${this.url}${this.layers[i].url}/${TILE_LEVEL}/${x}/${y}.geojson`;
 
             await fetch(url)
                 .then((response) => {
@@ -274,23 +196,23 @@ export default class TwinView {
 
         }
 
-        this.removeFarawayTiles(x, y);
+        this.removeFARawayTiles(x, y);
     }
 
     // Removes meshes on tiles that are 1km away
-    removeFarawayTiles(x, y) {
-        let lon = utils.tile2long(x, tileLevel);
-        let lat = utils.tile2lat(y, tileLevel);
+    removeFARawayTiles(x, y) {
+        let lon = utils.tile2long(x, TILE_LEVEL);
+        let lat = utils.tile2lat(y, TILE_LEVEL);
 
         let center = point([lon, lat]);
-        let buffered = turf.buffer(center, removeDistance, { units: 'meters' });
+        let buffered = turf.buffer(center, REMOVE_DISTANCE, { units: 'meters' });
 
-        for (let [key, value] of this.tiles.entries()) {
+        for (let [KEY, value] of this.tiles.entries()) {
 
-            let currentX = key.split(",")[0];
-            let currentY = key.split(",")[1];
-            let currentLon = utils.tile2long(currentX, tileLevel);
-            let currentLat = utils.tile2lat(currentY, tileLevel);
+            let currentX = KEY.split(",")[0];
+            let currentY = KEY.split(",")[1];
+            let currentLon = utils.tile2long(currentX, TILE_LEVEL);
+            let currentLat = utils.tile2lat(currentY, TILE_LEVEL);
             let point = turf.point([currentLon, currentLat])
             let poly = turf.polygon(buffered.geometry.coordinates);
 
@@ -298,7 +220,7 @@ export default class TwinView {
                 for (let i = 0; i < value.length; ++i) {
                     this.scene.remove(value[i]);
                 }
-                this.tiles.set(key, []);
+                this.tiles.set(KEY, []);
                 this.map.childrenClear(currentX, currentY);
             }
         }
@@ -306,14 +228,14 @@ export default class TwinView {
 
     storeMesh(mesh, x, y) {
 
-        let key = x + "," + y;
-        if (!this.tiles.has(key)) {
-            this.tiles.set(key, [mesh]);
+        let KEY = x + "," + y;
+        if (!this.tiles.has(KEY)) {
+            this.tiles.set(KEY, [mesh]);
 
         } else {
-            let tile = this.tiles.get(key);
+            let tile = this.tiles.get(KEY);
             tile.push(mesh);
-            this.tiles.set(key, tile);
+            this.tiles.set(KEY, tile);
         }
     }
 
