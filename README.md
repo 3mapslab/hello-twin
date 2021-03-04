@@ -26,7 +26,7 @@ npm install
 ```
 npm run serve
 ```
-Configs
+### Configs
 ```
 In file HelloTwin.vue, in configs var, its necessary to define the initial position.
 
