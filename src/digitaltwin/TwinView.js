@@ -9,7 +9,10 @@ import TwinLoader from './TwinLoader';
 import * as utils from "./utils.js";
 import { point } from "@turf/helpers";
 import * as turf from "@turf/turf";
+import { TilesRenderer } from './3DTilesRendererJS/three/TilesRenderer';
 
+
+const tileSetURL = "https://raw.githubusercontent.com/NASA-AMMOS/3DTilesRendererJS/master/example/data/tileset.json";
 const KEY = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const TILE_LEVEL = 18;
 const REMOVE_DISTANCE = 1000;
@@ -54,6 +57,8 @@ export default class TwinView {
         this.map = null;
         this.initMap();
 
+        this.init3DTiles();
+
         //Fog
         this.scene.fog = new THREE.Fog(0xFFFFFF, FAR / 3, FAR / 2);
 
@@ -70,6 +75,15 @@ export default class TwinView {
 
         this.containers = new Containers(this.coords, this.scene);
 
+        
+    }
+
+    init3DTiles() {
+        this.tilesRenderer = new TilesRenderer( tileSetURL );
+        this.tilesRenderer.setCamera( this.camera );
+        this.tilesRenderer.setResolutionFromRenderer( this.camera, this.renderer );
+        this.scene.add( this.tilesRenderer.group );
+        console.log(this.tilesRenderer);
     }
 
     initCamera() {
@@ -139,6 +153,8 @@ export default class TwinView {
 
     animate() {
         requestAnimationFrame(this.animate.bind(this));
+        this.tilesRenderer.update();
+        this.camera.updateMatrixWorld();
         this.render();
         this.renderer.renderLists.dispose();
     }
