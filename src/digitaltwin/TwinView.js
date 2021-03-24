@@ -12,7 +12,7 @@ import * as turf from "@turf/turf";
 import { TilesRenderer } from './3DTilesRendererJS/three/TilesRenderer';
 
 
-const tileSetURL = "https://raw.githubusercontent.com/NASA-AMMOS/3DTilesRendererJS/master/example/data/tileset.json";
+const tileSetURL = "./NewYork/tileset.json";
 const KEY = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const TILE_LEVEL = 18;
 const REMOVE_DISTANCE = 1000;

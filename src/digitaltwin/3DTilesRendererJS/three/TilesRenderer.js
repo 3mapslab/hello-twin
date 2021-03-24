@@ -14,6 +14,8 @@ import {
 	Math as MathUtils,
 	Frustum,
 	LoadingManager,
+	ExtrudeBufferGeometry,
+	Shape
 } from 'three';
 import { raycastTraverse, raycastTraverseFirstHit } from './raycastTraverse.js';
 
@@ -479,7 +481,38 @@ export class TilesRenderer extends TilesRendererBase {
 		let region = null;
 		if ( 'region' in tile.boundingVolume ) {
 
-			console.warn( 'ThreeTilesRenderer: region bounding volume not supported.' );
+			// console.warn( 'ThreeTilesRenderer: region bounding volume not supported.' );
+			
+			const data = tile.boundingVolume.region;
+			let shape = new Shape();
+            let v1 = data[0];
+            let v2 = data[1];
+            let v3 = data[2];
+            let v4 = data[3];
+            let v1_x = Math.cos(v1);
+            let v1_y = Math.sin(v1);
+            let v2_x = Math.cos(v2);
+            let v2_y = Math.sin(v2);
+            let v3_x = Math.cos(v3);
+            let v3_y = Math.sin(v3);
+            let v4_x = Math.cos(v4);
+            let v4_y = Math.sin(v4);
+
+            shape.lineTo(v1_x, v1_y);
+            shape.lineTo(v2_x, v2_y);
+            shape.lineTo(v3_x, v3_y);
+            shape.lineTo(v4_x, v4_y);
+
+			var extrudeSettings = {
+				depth: data[5],
+				bevelEnabled: false,
+				bevelSegments: 1,
+				steps: 1,
+				bevelSize: 0,
+				bevelThickness: 1
+			};
+
+            region = new ExtrudeBufferGeometry(shape, extrudeSettings);
 
 		}
 
