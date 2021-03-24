@@ -25,6 +25,10 @@ npm install
 npm run serve
 ```
 
+### Test 3D Tiles
+Download [NY Tileset](https://s3.amazonaws.com/cesiumjs/3DTiles/NewYork.zip),
+extract and place **NewYork** folder on this repository's public folder.
+
 ### Twin Initialization
 
 When initializing Hello-Twin, the initial position of the world and development url must be sent in the configs object.
