@@ -483,25 +483,17 @@ export class TilesRenderer extends TilesRendererBase {
 
 			// console.warn( 'ThreeTilesRenderer: region bounding volume not supported.' );
 			
+			/*
+			// Format:  [west, south, east, north, minimum height, maximum height]
 			const data = tile.boundingVolume.region;
-			let shape = new Shape();
-            let v1 = data[0];
-            let v2 = data[1];
-            let v3 = data[2];
-            let v4 = data[3];
-            let v1_x = Math.cos(v1);
-            let v1_y = Math.sin(v1);
-            let v2_x = Math.cos(v2);
-            let v2_y = Math.sin(v2);
-            let v3_x = Math.cos(v3);
-            let v3_y = Math.sin(v3);
-            let v4_x = Math.cos(v4);
-            let v4_y = Math.sin(v4);
+		
+			// convert coordinates from radians too degree
+			let coords = [	[data[0]*180/Math.PI, data[1]*180/Math.PI],
+							[data[2]*180/Math.PI, data[3]*180/Math.PI]];
 
-            shape.lineTo(v1_x, v1_y);
-            shape.lineTo(v2_x, v2_y);
-            shape.lineTo(v3_x, v3_y);
-            shape.lineTo(v4_x, v4_y);
+			let shape = new Shape();
+			
+			// TODO: Draw square of region from the two points
 
 			var extrudeSettings = {
 				depth: data[5],
@@ -513,6 +505,7 @@ export class TilesRenderer extends TilesRendererBase {
 			};
 
             region = new ExtrudeBufferGeometry(shape, extrudeSettings);
+			*/
 
 		}
 
@@ -851,8 +844,9 @@ export class TilesRenderer extends TilesRendererBase {
 
 		} else if ( 'region' in boundingVolume ) {
 
+			return 1;
 			// unsupported
-			console.warn( 'ThreeTilesRenderer : Region bounds not supported.' );
+			// console.warn( 'ThreeTilesRenderer : Region bounds not supported.' );
 
 		}
 
