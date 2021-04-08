@@ -1,6 +1,5 @@
 // I3DM File Format
 // https://github.com/CesiumGS/3d-tiles/blob/master/specification/TileFormats/Instanced3DModel/README.md
-/*eslint-disable*/
 
 import { FeatureTable, BatchTable } from '../utilities/FeatureTable.js';
 import { arrayToString } from '../utilities/arrayToString.js';

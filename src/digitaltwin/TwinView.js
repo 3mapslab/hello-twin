@@ -13,6 +13,8 @@ import { TilesRenderer } from './3DTilesRendererJS/three/TilesRenderer';
 
 
 const tileSetURL = "./NewYork/tileset.json";
+const tileSetURL = "./castle-santa-maria-da-feira-portugal/Batchedsanta_maria_da_feira_mod3d/tileset.json";
+
 const KEY = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const TILE_LEVEL = 18;
 const REMOVE_DISTANCE = 1000;

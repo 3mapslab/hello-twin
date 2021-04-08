@@ -1,5 +1,3 @@
-/*eslint-disable*/
-
 import path from 'path';
 import { urlJoin } from '../utilities/urlJoin.js';
 import { LRUCache } from '../utilities/LRUCache.js';

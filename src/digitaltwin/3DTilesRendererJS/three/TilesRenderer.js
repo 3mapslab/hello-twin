@@ -1,4 +1,3 @@
-/*eslint-disable*/
 import { TilesRendererBase } from '../base/TilesRendererBase.js';
 import { B3DMLoader } from './B3DMLoader.js';
 import { PNTSLoader } from './PNTSLoader.js';
@@ -14,10 +13,9 @@ import {
 	Math as MathUtils,
 	Frustum,
 	LoadingManager,
-	ExtrudeBufferGeometry,
-	Shape
 } from 'three';
 import { raycastTraverse, raycastTraverseFirstHit } from './raycastTraverse.js';
+import { WGS84Region } from './WGS84Region.js';
 
 const INITIAL_FRUSTUM_CULLED = Symbol( 'INITIAL_FRUSTUM_CULLED' );
 const DEG2RAD = MathUtils.DEG2RAD;
@@ -85,21 +83,7 @@ export class TilesRenderer extends TilesRendererBase {
 		this.onLoadModel = null;
 		this.onDisposeModel = null;
 
-		const manager = new LoadingManager();
-		manager.setURLModifier( url => {
-
-			if ( this.preprocessURL ) {
-
-				return this.preprocessURL( url );
-
-			} else {
-
-				return url;
-
-			}
-
-		} );
-		this.manager = manager;
+		this.manager = new LoadingManager();
 
 	}
 
@@ -115,12 +99,29 @@ export class TilesRenderer extends TilesRendererBase {
 		const cached = this.root.cached;
 		const boundingBox = cached.box;
 		const obbMat = cached.boxTransform;
+		const sphere = cached.sphere;
 
 		if ( boundingBox ) {
 
 			box.copy( boundingBox );
 			box.applyMatrix4( obbMat );
 
+			return true;
+
+		} else if ( sphere ) {
+
+			box.makeEmpty();
+			box.max.copy( sphere.center );
+			box.min.copy( sphere.center );
+
+			const r = sphere.radius;
+			box.max.x += r;
+			box.max.y += r;
+			box.max.z += r;
+
+			box.min.x -= r;
+			box.min.y -= r;
+			box.min.z -= r;
 			return true;
 
 		} else {
@@ -420,6 +421,14 @@ export class TilesRenderer extends TilesRendererBase {
 
 		}
 
+		let region = null;
+		if ( 'region' in tile.boundingVolume ) {
+
+			const data = tile.boundingVolume.region;
+			region = new WGS84Region( ...data );
+
+		}
+
 		let box = null;
 		let boxTransform = null;
 		let boxTransformInverse = null;
@@ -476,36 +485,10 @@ export class TilesRenderer extends TilesRendererBase {
 			sphere.center.set( data[ 0 ], data[ 1 ], data[ 2 ] );
 			sphere.applyMatrix4( transform );
 
-		}
+		} else if ( 'region' in tile.boundingVolume ) {
 
-		let region = null;
-		if ( 'region' in tile.boundingVolume ) {
-
-			// console.warn( 'ThreeTilesRenderer: region bounding volume not supported.' );
-			
-			/*
-			// Format:  [west, south, east, north, minimum height, maximum height]
-			const data = tile.boundingVolume.region;
-		
-			// convert coordinates from radians too degree
-			let coords = [	[data[0]*180/Math.PI, data[1]*180/Math.PI],
-							[data[2]*180/Math.PI, data[3]*180/Math.PI]];
-
-			let shape = new Shape();
-			
-			// TODO: Draw square of region from the two points
-
-			var extrudeSettings = {
-				depth: data[5],
-				bevelEnabled: false,
-				bevelSegments: 1,
-				steps: 1,
-				bevelSize: 0,
-				bevelThickness: 1
-			};
-
-            region = new ExtrudeBufferGeometry(shape, extrudeSettings);
-			*/
+			sphere = new Sphere();
+			region.getBoundingSphere( sphere );
 
 		}
 
@@ -536,12 +519,6 @@ export class TilesRenderer extends TilesRendererBase {
 		tile._loadIndex = tile._loadIndex || 0;
 		tile._loadIndex ++;
 
-		const uri = tile.content.uri;
-		const uriSplits = uri.split( /[\\\/]/g );
-		uriSplits.pop();
-		const workingPath = uriSplits.join( '/' );
-		const fetchOptions = this.fetchOptions;
-
 		const manager = this.manager;
 		const loadIndex = tile._loadIndex;
 		let promise = null;
@@ -549,10 +526,7 @@ export class TilesRenderer extends TilesRendererBase {
 		switch ( extension ) {
 
 			case 'b3dm':
-				const loader = new B3DMLoader( manager );
-				loader.workingPath = workingPath;
-				loader.fetchOptions = fetchOptions;
-				promise = loader
+				promise = new B3DMLoader( manager )
 					.parse( buffer )
 					.then( res => res.scene );
 				break;
@@ -561,31 +535,17 @@ export class TilesRenderer extends TilesRendererBase {
 				promise = Promise.resolve( new PNTSLoader( manager ).parse( buffer ).scene );
 				break;
 
-			case 'i3dm': {
-
-				const loader = new I3DMLoader( manager );
-				loader.workingPath = workingPath;
-				loader.fetchOptions = fetchOptions;
-				promise = loader
+			case 'i3dm':
+				promise = new I3DMLoader( manager )
 					.parse( buffer )
 					.then( res => res.scene );
-
 				break;
 
-			}
-
-			case 'cmpt': {
-
-				const loader = new CMPTLoader( manager );
-				loader.workingPath = workingPath;
-				loader.fetchOptions = fetchOptions;
-				promise = loader
+			case 'cmpt':
+				promise = new CMPTLoader( manager )
 					.parse( buffer )
 					.then( res => res.scene	);
-
 				break;
-
-			}
 
 			default:
 				console.warn( `TilesRenderer: Content type "${ extension }" not supported.` );
@@ -609,28 +569,19 @@ export class TilesRenderer extends TilesRendererBase {
 			switch ( upAxis.toLowerCase() ) {
 
 				case 'x':
-					tempMat.makeRotationAxis( Y_AXIS, - Math.PI / 2 );
+					scene.matrix.makeRotationAxis( Y_AXIS, - Math.PI / 2 );
 					break;
 
 				case 'y':
-					tempMat.makeRotationAxis( X_AXIS, Math.PI / 2 );
+					scene.matrix.makeRotationAxis( X_AXIS, Math.PI / 2 );
 					break;
 
 				case 'z':
-					tempMat.identity();
 					break;
 
 			}
 
-			// ensure the matrix is up to date in case the scene has a transform applied
-			scene.updateMatrix();
-
-			// apply the local up-axis correction rotation
-			// GLTFLoader seems to never set a transformation on the root scene object so
-			// any transformations applied to it can be assumed to be applied after load
-			// (such as applying RTC_CENTER) meaning they should happen _after_ the z-up
-			// rotation fix which is why "multiply" happens here.
-			scene.matrix.multiply( tempMat ).premultiply( cachedTransform );
+			scene.matrix.premultiply( cachedTransform );
 			scene.matrix.decompose( scene.position, scene.quaternion, scene.scale );
 			scene.traverse( c => {
 
@@ -789,10 +740,12 @@ export class TilesRenderer extends TilesRendererBase {
 
 		// TODO: Use the content bounding volume here?
 		const boundingVolume = tile.boundingVolume;
-		if ( 'box' in boundingVolume ) {
+		if ( true ) {
 
 			const boundingBox = cached.box;
 			const boxTransformInverse = cached.boxTransformInverse;
+			const sphere = cached.sphere;
+			const region = cached.region;
 
 			let maxError = - Infinity;
 			let minDistance = Infinity;
@@ -808,8 +761,6 @@ export class TilesRenderer extends TilesRendererBase {
 				const camera = cameras[ i ];
 				const info = cameraInfo[ i ];
 				const invScale = info.invScale;
-				tempVector.copy( info.position );
-				tempVector.applyMatrix4( boxTransformInverse );
 
 				let error;
 				if ( camera.isOrthographicCamera ) {
@@ -819,7 +770,23 @@ export class TilesRenderer extends TilesRendererBase {
 
 				} else {
 
-					const distance = boundingBox.distanceToPoint( tempVector );
+					let distance;
+					if ( region ) {
+
+						distance = region.distanceToPoint( info.position );
+
+					} else if ( boundingBox ) {
+
+						tempVector.copy( info.position );
+						tempVector.applyMatrix4( boxTransformInverse );
+						distance = boundingBox.distanceToPoint( tempVector );
+
+					} else if ( sphere ) {
+
+						distance = sphere.distanceToPoint( info.position );
+
+					}
+
 					const scaledDistance = distance * invScale;
 					const sseDenominator = info.sseDenominator;
 					error = tile.geometricError / ( scaledDistance * sseDenominator );
@@ -835,18 +802,6 @@ export class TilesRenderer extends TilesRendererBase {
 			tile.cached.distance = minDistance;
 
 			return maxError;
-
-		} else if ( 'sphere' in boundingVolume ) {
-
-			// const sphere = cached.sphere;
-
-			console.warn( 'ThreeTilesRenderer : Sphere bounds not supported.' );
-
-		} else if ( 'region' in boundingVolume ) {
-
-			return 1;
-			// unsupported
-			// console.warn( 'ThreeTilesRenderer : Region bounds not supported.' );
 
 		}
 

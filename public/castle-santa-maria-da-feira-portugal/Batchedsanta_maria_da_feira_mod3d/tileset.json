@@ -1,0 +1,22 @@
+{
+  "asset": {
+    "version": "0.0",
+    "tilesetVersion": "1.0.0-obj23dtiles",
+    "gltfUpAxis": "Z"
+  },
+  "geometricError": 200,
+  "root": {
+    "boundingVolume": {
+      "region": [
+        2,0,0,2,
+        11,
+        22
+      ]
+    },
+    "geometricError": 0,
+    "refine": "ADD",
+    "content": {
+      "url": "santa_maria_da_feira_mod3d.b3dm"
+    }
+  }
+}
