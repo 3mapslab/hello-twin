@@ -12,7 +12,9 @@ import * as turf from "@turf/turf";
 import { TilesRenderer } from './3DTilesRendererJS/three/TilesRenderer';
 
 
-const tileSetURL = "./NewYork/tileset.json";
+//const tileSetURL = "./NewYork/tileset.json";
+//const tileSetURL = "./TilesetWithDiscreteLOD/tileset.json";
+// const tileSetURL = "./BatchedAGI_HQ/tileset.json"
 const tileSetURL = "./castle-santa-maria-da-feira-portugal/Batchedsanta_maria_da_feira_mod3d/tileset.json";
 
 const KEY = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
