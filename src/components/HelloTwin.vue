@@ -123,7 +123,7 @@ export default {
   },
   async mounted() {
     const configs = {
-      initialPosition: { lat: 41.185523935676713, lng: -8.7016652234108349 },
+      initialPosition: { lat: 41.5546580189999, lng: -8.377735018730164 },
       url: 'http://localhost:8123/'
     };
     this.twinView = new TwinView(this.$refs.world, configs, layerProperties);
