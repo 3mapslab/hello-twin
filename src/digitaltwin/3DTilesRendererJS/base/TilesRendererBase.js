@@ -248,7 +248,7 @@ export class TilesRendererBase {
 
 		return fetch( url, fetchOptions )
 			.then( res => {
-
+			
 				if ( res.ok ) {
 
 					return res.json();
@@ -325,9 +325,7 @@ export class TilesRendererBase {
 		// If the tile is already being loaded then don't
 		// start it again.
 		if ( tile.__loadingState !== UNLOADED ) {
-
 			return;
-
 		}
 
 		const stats = this.stats;
@@ -531,7 +529,7 @@ export class TilesRendererBase {
 					tile.__loadingState = LOADED;
 
 					if ( tile.__wasSetVisible ) {
-						console.log("visible")
+	
 						this.setTileVisible( tile, true );
 
 					}

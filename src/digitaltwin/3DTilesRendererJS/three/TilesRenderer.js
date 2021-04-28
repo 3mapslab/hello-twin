@@ -19,7 +19,7 @@ import { raycastTraverse, raycastTraverseFirstHit } from './raycastTraverse.js';
 import { WGS84Region } from './WGS84Region.js';
 import * as utils from '../../utils.js'
 
-const INITIAL_FRUSTUM_CULLED = Symbol( 'INITIAL_FRUSTUM_CULLED' );
+const INITIAL_FRUSTUM_CULLED = Symbol('INITIAL_FRUSTUM_CULLED');
 const DEG2RAD = MathUtils.DEG2RAD;
 const tempMat = new Matrix4();
 const tempMat2 = new Matrix4();
@@ -28,18 +28,18 @@ const vecX = new Vector3();
 const vecY = new Vector3();
 const vecZ = new Vector3();
 
-const X_AXIS = new Vector3( 1, 0, 0 );
-const Y_AXIS = new Vector3( 0, 1, 0 );
+const X_AXIS = new Vector3(1, 0, 0);
+const Y_AXIS = new Vector3(0, 1, 0);
 
-function emptyRaycast() {}
+function emptyRaycast() { }
 
-function updateFrustumCulled( object, toInitialValue ) {
+function updateFrustumCulled(object, toInitialValue) {
 
-	object.traverse( c => {
+	object.traverse(c => {
 
-		c.frustumCulled = c[ INITIAL_FRUSTUM_CULLED ] && toInitialValue;
+		c.frustumCulled = c[INITIAL_FRUSTUM_CULLED] && toInitialValue;
 
-	} );
+	});
 
 }
 
@@ -51,29 +51,29 @@ export class TilesRenderer extends TilesRendererBase {
 
 	}
 
-	set autoDisableRendererCulling( value ) {
+	set autoDisableRendererCulling(value) {
 
-		if ( this._autoDisableRendererCulling !== value ) {
+		if (this._autoDisableRendererCulling !== value) {
 
 			super._autoDisableRendererCulling = value;
-			this.traverse( tile => {
+			this.traverse(tile => {
 
-				if ( tile.scene ) {
+				if (tile.scene) {
 
-					updateFrustumCulled( tile.scene, value );
+					updateFrustumCulled(tile.scene, value);
 
 				}
 
-			} );
+			});
 
 		}
 
 	}
 
-	constructor( ...args ) {
+	constructor(...args) {
 
-		super( ...args );
-		this.group = new TilesGroup( this );
+		super(...args);
+		this.group = new TilesGroup(this);
 		this.cameras = [];
 		this.cameraMap = new Map();
 		this.cameraInfo = [];
@@ -90,9 +90,9 @@ export class TilesRenderer extends TilesRendererBase {
 	}
 
 	/* Public API */
-	getBounds( box ) {
+	getBounds(box) {
 
-		if ( ! this.root ) {
+		if (!this.root) {
 
 			return false;
 
@@ -103,18 +103,18 @@ export class TilesRenderer extends TilesRendererBase {
 		const obbMat = cached.boxTransform;
 		const sphere = cached.sphere;
 
-		if ( boundingBox ) {
+		if (boundingBox) {
 
-			box.copy( boundingBox );
-			box.applyMatrix4( obbMat );
+			box.copy(boundingBox);
+			box.applyMatrix4(obbMat);
 
 			return true;
 
-		} else if ( sphere ) {
+		} else if (sphere) {
 
 			box.makeEmpty();
-			box.max.copy( sphere.center );
-			box.min.copy( sphere.center );
+			box.max.copy(sphere.center);
+			box.min.copy(sphere.center);
 
 			const r = sphere.radius;
 			box.max.x += r;
@@ -134,9 +134,9 @@ export class TilesRenderer extends TilesRendererBase {
 
 	}
 
-	getOrientedBounds( box, matrix ) {
+	getOrientedBounds(box, matrix) {
 
-		if ( ! this.root ) {
+		if (!this.root) {
 
 			return false;
 
@@ -146,10 +146,10 @@ export class TilesRenderer extends TilesRendererBase {
 		const boundingBox = cached.box;
 		const obbMat = cached.boxTransform;
 
-		if ( box ) {
+		if (box) {
 
-			box.copy( boundingBox );
-			matrix.copy( obbMat );
+			box.copy(boundingBox);
+			matrix.copy(obbMat);
 
 			return true;
 
@@ -161,60 +161,60 @@ export class TilesRenderer extends TilesRendererBase {
 
 	}
 
-	forEachLoadedModel( callback ) {
+	forEachLoadedModel(callback) {
 
-		this.traverse( tile => {
+		this.traverse(tile => {
 
 			const scene = tile.cached.scene;
-			if ( scene ) {
+			if (scene) {
 
-				callback( scene, tile );
+				callback(scene, tile);
 
 			}
 
-		} );
+		});
 
 	}
 
-	raycast( raycaster, intersects ) {
+	raycast(raycaster, intersects) {
 
-		if ( ! this.root ) {
+		if (!this.root) {
 
 			return;
 
 		}
 
-		if ( raycaster.firstHitOnly ) {
+		if (raycaster.firstHitOnly) {
 
-			const hit = raycastTraverseFirstHit( this.root, this.group, this.activeTiles, raycaster );
-			if ( hit ) {
+			const hit = raycastTraverseFirstHit(this.root, this.group, this.activeTiles, raycaster);
+			if (hit) {
 
-				intersects.push( hit );
+				intersects.push(hit);
 
 			}
 
 		} else {
 
-			raycastTraverse( this.root, this.group, this.activeTiles, raycaster, intersects );
+			raycastTraverse(this.root, this.group, this.activeTiles, raycaster, intersects);
 
 		}
 
 	}
 
-	hasCamera( camera ) {
+	hasCamera(camera) {
 
-		return this.cameraMap.has( camera );
+		return this.cameraMap.has(camera);
 
 	}
 
-	setCamera( camera ) {
+	setCamera(camera) {
 
 		const cameras = this.cameras;
 		const cameraMap = this.cameraMap;
-		if ( ! cameraMap.has( camera ) ) {
+		if (!cameraMap.has(camera)) {
 
-			cameraMap.set( camera, new Vector2() );
-			cameras.push( camera );
+			cameraMap.set(camera, new Vector2());
+			cameras.push(camera);
 			return true;
 
 		}
@@ -222,53 +222,53 @@ export class TilesRenderer extends TilesRendererBase {
 
 	}
 
-	setResolution( camera, xOrVec, y ) {
+	setResolution(camera, xOrVec, y) {
 
 		const cameraMap = this.cameraMap;
-		if ( ! cameraMap.has( camera ) ) {
+		if (!cameraMap.has(camera)) {
 
 			return false;
 
 		}
 
-		if ( xOrVec instanceof Vector2 ) {
+		if (xOrVec instanceof Vector2) {
 
-			cameraMap.get( camera ).copy( xOrVec );
+			cameraMap.get(camera).copy(xOrVec);
 
 		} else {
 
-			cameraMap.get( camera ).set( xOrVec, y );
+			cameraMap.get(camera).set(xOrVec, y);
 
 		}
 		return true;
 
 	}
 
-	setResolutionFromRenderer( camera, renderer ) {
+	setResolutionFromRenderer(camera, renderer) {
 
 		const cameraMap = this.cameraMap;
-		if ( ! cameraMap.has( camera ) ) {
+		if (!cameraMap.has(camera)) {
 
 			return false;
 
 		}
 
-		const resolution = cameraMap.get( camera );
-		renderer.getSize( resolution );
-		resolution.multiplyScalar( renderer.getPixelRatio() );
+		const resolution = cameraMap.get(camera);
+		renderer.getSize(resolution);
+		resolution.multiplyScalar(renderer.getPixelRatio());
 		return true;
 
 	}
 
-	deleteCamera( camera ) {
+	deleteCamera(camera) {
 
 		const cameras = this.cameras;
 		const cameraMap = this.cameraMap;
-		if ( cameraMap.has( camera ) ) {
+		if (cameraMap.has(camera)) {
 
-			const index = cameras.indexOf( camera );
-			cameras.splice( index, 1 );
-			cameraMap.delete( camera );
+			const index = cameras.indexOf(camera);
+			cameras.splice(index, 1);
+			cameraMap.delete(camera);
 			return true;
 
 		}
@@ -277,25 +277,25 @@ export class TilesRenderer extends TilesRendererBase {
 	}
 
 	/* Overriden */
-	fetchTileSet( url, ...rest ) {
+	fetchTileSet(url, ...rest) {
 
-		const pr = super.fetchTileSet( url, ...rest );
-		pr.then( json => {
+		const pr = super.fetchTileSet(url, ...rest);
+		pr.then(json => {
 
-			if ( this.onLoadTileSet ) {
+			if (this.onLoadTileSet) {
 
 				// Push this onto the end of the event stack to ensure this runs
 				// after the base renderer has placed the provided json where it
 				// needs to be placed and is ready for an update.
-				Promise.resolve().then( () => {
+				Promise.resolve().then(() => {
 
-					this.onLoadTileSet( json, url );
+					this.onLoadTileSet(json, url);
 
-				} );
+				});
 
 			}
 
-		} );
+		});
 		return pr;
 
 	}
@@ -307,23 +307,23 @@ export class TilesRenderer extends TilesRendererBase {
 		const cameraMap = this.cameraMap;
 		const cameraInfo = this.cameraInfo;
 
-		if ( cameras.length === 0 ) {
+		if (cameras.length === 0) {
 
-			console.warn( 'TilesRenderer: no cameras defined. Cannot update 3d tiles.' );
+			console.warn('TilesRenderer: no cameras defined. Cannot update 3d tiles.');
 			return;
 
 		}
 
 		// automatically scale the array of cameraInfo to match the cameras
-		while ( cameraInfo.length > cameras.length ) {
+		while (cameraInfo.length > cameras.length) {
 
 			cameraInfo.pop();
 
 		}
 
-		while ( cameraInfo.length < cameras.length ) {
+		while (cameraInfo.length < cameras.length) {
 
-			cameraInfo.push( {
+			cameraInfo.push({
 
 				frustum: new Frustum(),
 				sseDenominator: - 1,
@@ -331,65 +331,65 @@ export class TilesRenderer extends TilesRendererBase {
 				invScale: - 1,
 				pixelSize: 0,
 
-			} );
+			});
 
 		}
 
 		// extract scale of group container
-		tempMat2.copy( group.matrixWorld ).invert();
+		tempMat2.copy(group.matrixWorld).invert();
 
 		let invScale;
-		tempVector.setFromMatrixScale( tempMat2 );
+		tempVector.setFromMatrixScale(tempMat2);
 		invScale = tempVector.x;
 
-		if ( Math.abs( Math.max( tempVector.x - tempVector.y, tempVector.x - tempVector.z ) ) > 1e-6 ) {
+		if (Math.abs(Math.max(tempVector.x - tempVector.y, tempVector.x - tempVector.z)) > 1e-6) {
 
-			console.warn( 'ThreeTilesRenderer : Non uniform scale used for tile which may cause issues when calculating screen space error.' );
+			console.warn('ThreeTilesRenderer : Non uniform scale used for tile which may cause issues when calculating screen space error.');
 
 		}
 
 		// store the camera cameraInfo in the 3d tiles root frame
-		for ( let i = 0, l = cameraInfo.length; i < l; i ++ ) {
+		for (let i = 0, l = cameraInfo.length; i < l; i++) {
 
-			const camera = cameras[ i ];
-			const info = cameraInfo[ i ];
+			const camera = cameras[i];
+			const info = cameraInfo[i];
 			const frustum = info.frustum;
 			const position = info.position;
-			const resolution = cameraMap.get( camera );
+			const resolution = cameraMap.get(camera);
 
-			if ( resolution.width === 0 || resolution.height === 0 ) {
+			if (resolution.width === 0 || resolution.height === 0) {
 
-				console.warn( 'TilesRenderer: resolution for camera error calculation is not set.' );
-
-			}
-
-			if ( camera.isPerspectiveCamera ) {
-
-				info.sseDenominator = 2 * Math.tan( 0.5 * camera.fov * DEG2RAD ) / resolution.height;
+				console.warn('TilesRenderer: resolution for camera error calculation is not set.');
 
 			}
 
-			if ( camera.isOrthographicCamera ) {
+			if (camera.isPerspectiveCamera) {
+
+				info.sseDenominator = 2 * Math.tan(0.5 * camera.fov * DEG2RAD) / resolution.height;
+
+			}
+
+			if (camera.isOrthographicCamera) {
 
 				const w = camera.right - camera.left;
 				const h = camera.top - camera.bottom;
-				info.pixelSize = Math.max( h / resolution.height, w / resolution.width );
+				info.pixelSize = Math.max(h / resolution.height, w / resolution.width);
 
 			}
 
 			info.invScale = invScale;
 
 			// get frustum in group root frame
-			tempMat.copy( group.matrixWorld );
-			tempMat.premultiply( camera.matrixWorldInverse );
-			tempMat.premultiply( camera.projectionMatrix );
+			tempMat.copy(group.matrixWorld);
+			tempMat.premultiply(camera.matrixWorldInverse);
+			tempMat.premultiply(camera.projectionMatrix);
 
-			frustum.setFromProjectionMatrix( tempMat );
+			frustum.setFromProjectionMatrix(tempMat);
 
 			// get transform position in group root frame
-			position.set( 0, 0, 0 );
-			position.applyMatrix4( camera.matrixWorld );
-			position.applyMatrix4( tempMat2 );
+			position.set(0, 0, 0);
+			position.applyMatrix4(camera.matrixWorld);
+			position.applyMatrix4(tempMat2);
 
 		}
 
@@ -397,17 +397,17 @@ export class TilesRenderer extends TilesRendererBase {
 
 	}
 
-	preprocessNode( tile, parentTile, tileSetDir ) {
+	preprocessNode(tile, parentTile, tileSetDir) {
 
-		super.preprocessNode( tile, parentTile, tileSetDir );
+		super.preprocessNode(tile, parentTile, tileSetDir);
 
 		const transform = new Matrix4();
-		if ( tile.transform ) {
+		if (tile.transform) {
 
 			const transformArr = tile.transform;
-			for ( let i = 0; i < 16; i ++ ) {
+			for (let i = 0; i < 16; i++) {
 
-				transform.elements[ i ] = transformArr[ i ];
+				transform.elements[i] = transformArr[i];
 
 			}
 
@@ -417,24 +417,24 @@ export class TilesRenderer extends TilesRendererBase {
 
 		}
 
-		if ( parentTile ) {
+		if (parentTile) {
 
-			transform.premultiply( parentTile.cached.transform );
+			transform.premultiply(parentTile.cached.transform);
 
 		}
 
 		let region = null;
-		if ( 'region' in tile.boundingVolume ) {
+		if ('region' in tile.boundingVolume) {
 
 			const data = tile.boundingVolume.region;
-			region = new WGS84Region( ...data );
+			region = new WGS84Region(...data);
 
 		}
 
 		let box = null;
 		let boxTransform = null;
 		let boxTransformInverse = null;
-		if ( 'box' in tile.boundingVolume ) {
+		if ('box' in tile.boundingVolume) {
 
 			const data = tile.boundingVolume.box;
 			box = new Box3();
@@ -442,9 +442,9 @@ export class TilesRenderer extends TilesRendererBase {
 			boxTransformInverse = new Matrix4();
 
 			// get the extents of the bounds in each axis
-			vecX.set( data[ 3 ], data[ 4 ], data[ 5 ] );
-			vecY.set( data[ 6 ], data[ 7 ], data[ 8 ] );
-			vecZ.set( data[ 9 ], data[ 10 ], data[ 11 ] );
+			vecX.set(data[3], data[4], data[5]);
+			vecY.set(data[6], data[7], data[8]);
+			vecZ.set(data[9], data[10], data[11]);
 
 			const scaleX = vecX.length();
 			const scaleY = vecY.length();
@@ -456,41 +456,41 @@ export class TilesRenderer extends TilesRendererBase {
 
 			// create the oriented frame that the box exists in
 			boxTransform.set(
-				vecX.x, vecY.x, vecZ.x, data[ 0 ],
-				vecX.y, vecY.y, vecZ.y, data[ 1 ],
-				vecX.z, vecY.z, vecZ.z, data[ 2 ],
+				vecX.x, vecY.x, vecZ.x, data[0],
+				vecX.y, vecY.y, vecZ.y, data[1],
+				vecX.z, vecY.z, vecZ.z, data[2],
 				0, 0, 0, 1
 			);
-			boxTransform.premultiply( transform );
-			boxTransformInverse.copy( boxTransform ).invert();
+			boxTransform.premultiply(transform);
+			boxTransformInverse.copy(boxTransform).invert();
 
 			// scale the box by the extents
-			box.min.set( - scaleX, - scaleY, - scaleZ );
-			box.max.set( scaleX, scaleY, scaleZ );
+			box.min.set(- scaleX, - scaleY, - scaleZ);
+			box.max.set(scaleX, scaleY, scaleZ);
 
 		}
 
 		let sphere = null;
-		if ( 'sphere' in tile.boundingVolume ) {
+		if ('sphere' in tile.boundingVolume) {
 
 			const data = tile.boundingVolume.sphere;
 			sphere = new Sphere();
-			sphere.center.set( data[ 0 ], data[ 1 ], data[ 2 ] );
-			sphere.radius = data[ 3 ];
-			sphere.applyMatrix4( transform );
+			sphere.center.set(data[0], data[1], data[2]);
+			sphere.radius = data[3];
+			sphere.applyMatrix4(transform);
 
-		} else if ( 'box' in tile.boundingVolume ) {
+		} else if ('box' in tile.boundingVolume) {
 
 			const data = tile.boundingVolume.box;
 			sphere = new Sphere();
-			box.getBoundingSphere( sphere );
-			sphere.center.set( data[ 0 ], data[ 1 ], data[ 2 ] );
-			sphere.applyMatrix4( transform );
+			box.getBoundingSphere(sphere);
+			sphere.center.set(data[0], data[1], data[2]);
+			sphere.applyMatrix4(transform);
 
-		} else if ( 'region' in tile.boundingVolume ) {
+		} else if ('region' in tile.boundingVolume) {
 
 			sphere = new Sphere();
-			region.getBoundingSphere( sphere );
+			region.getBoundingSphere(sphere);
 
 		}
 
@@ -516,49 +516,49 @@ export class TilesRenderer extends TilesRendererBase {
 
 	}
 
-	parseTile( buffer, tile, extension ) {
+	parseTile(buffer, tile, extension) {
 
 		tile._loadIndex = tile._loadIndex || 0;
-		tile._loadIndex ++;
+		tile._loadIndex++;
 
 		const manager = this.manager;
 		const loadIndex = tile._loadIndex;
 		let promise = null;
 
-		switch ( extension ) {
+		switch (extension) {
 
 			case 'b3dm':
-				promise = new B3DMLoader( manager )
-					.parse( buffer )
-					.then( res => res.scene );
+				promise = new B3DMLoader(manager)
+					.parse(buffer)
+					.then(res => res.scene);
 				break;
 
 			case 'pnts':
-				promise = Promise.resolve( new PNTSLoader( manager ).parse( buffer ).scene );
+				promise = Promise.resolve(new PNTSLoader(manager).parse(buffer).scene);
 				break;
 
 			case 'i3dm':
-				promise = new I3DMLoader( manager )
-					.parse( buffer )
-					.then( res => res.scene );
+				promise = new I3DMLoader(manager)
+					.parse(buffer)
+					.then(res => res.scene);
 				break;
 
 			case 'cmpt':
-				promise = new CMPTLoader( manager )
-					.parse( buffer )
-					.then( res => res.scene	);
+				promise = new CMPTLoader(manager)
+					.parse(buffer)
+					.then(res => res.scene);
 				break;
 
 			default:
-				console.warn( `TilesRenderer: Content type "${ extension }" not supported.` );
-				promise = Promise.resolve( null );
+				console.warn(`TilesRenderer: Content type "${extension}" not supported.`);
+				promise = Promise.resolve(null);
 				break;
 
 		}
 
-		return promise.then( scene => {
+		return promise.then(scene => {
 
-			if ( tile._loadIndex !== loadIndex ) {
+			if (tile._loadIndex !== loadIndex) {
 
 				return;
 
@@ -568,14 +568,14 @@ export class TilesRenderer extends TilesRendererBase {
 			const cached = tile.cached;
 			const cachedTransform = cached.transform;
 
-			switch ( upAxis.toLowerCase() ) {
+			switch (upAxis.toLowerCase()) {
 
 				case 'x':
-					scene.matrix.makeRotationAxis( Y_AXIS, - Math.PI / 2 );
+					scene.matrix.makeRotationAxis(Y_AXIS, - Math.PI / 2);
 					break;
 
 				case 'y':
-					scene.matrix.makeRotationAxis( X_AXIS, Math.PI / 2 );
+					scene.matrix.makeRotationAxis(X_AXIS, Math.PI / 2);
 					break;
 
 				case 'z':
@@ -583,46 +583,46 @@ export class TilesRenderer extends TilesRendererBase {
 
 			}
 
-			scene.matrix.premultiply( cachedTransform );
-			scene.matrix.decompose( scene.position, scene.quaternion, scene.scale );
-			scene.traverse( c => {
+			scene.matrix.premultiply(cachedTransform);
+			scene.matrix.decompose(scene.position, scene.quaternion, scene.scale);
+			scene.traverse(c => {
 
-				c[ INITIAL_FRUSTUM_CULLED ] = c.frustumCulled;
+				c[INITIAL_FRUSTUM_CULLED] = c.frustumCulled;
 
-			} );
-			updateFrustumCulled( scene, this.autoDisableRendererCulling );
+			});
+			updateFrustumCulled(scene, this.autoDisableRendererCulling);
 
 			cached.scene = scene;
 
 			// We handle raycasting in a custom way so remove it from here
-			scene.traverse( c => {
+			scene.traverse(c => {
 
 				c.raycast = emptyRaycast;
 
-			} );
+			});
 
 			const materials = [];
 			const geometry = [];
 			const textures = [];
-			scene.traverse( c => {
+			scene.traverse(c => {
 
-				if ( c.geometry ) {
+				if (c.geometry) {
 
-					geometry.push( c.geometry );
+					geometry.push(c.geometry);
 
 				}
 
-				if ( c.material ) {
+				if (c.material) {
 
 					const material = c.material;
-					materials.push( c.material );
+					materials.push(c.material);
 
-					for ( const key in material ) {
+					for (const key in material) {
 
-						const value = material[ key ];
-						if ( value && value.isTexture ) {
+						const value = material[key];
+						if (value && value.isTexture) {
 
-							textures.push( value );
+							textures.push(value);
 
 						}
 
@@ -630,54 +630,54 @@ export class TilesRenderer extends TilesRendererBase {
 
 				}
 
-			} );
+			});
 
 			cached.materials = materials;
 			cached.geometry = geometry;
 			cached.textures = textures;
 
-			if ( this.onLoadModel ) {
+			if (this.onLoadModel) {
 
-				this.onLoadModel( scene, tile );
+				this.onLoadModel(scene, tile);
 
 			}
 
-		} );
+		});
 
 	}
 
-	disposeTile( tile ) {
+	disposeTile(tile) {
 
 		// This could get called before the tile has finished downloading
 		const cached = tile.cached;
-		if ( cached.scene ) {
+		if (cached.scene) {
 
 			const materials = cached.materials;
 			const geometry = cached.geometry;
 			const textures = cached.textures;
 
-			for ( let i = 0, l = geometry.length; i < l; i ++ ) {
+			for (let i = 0, l = geometry.length; i < l; i++) {
 
-				geometry[ i ].dispose();
-
-			}
-
-			for ( let i = 0, l = materials.length; i < l; i ++ ) {
-
-				materials[ i ].dispose();
+				geometry[i].dispose();
 
 			}
 
-			for ( let i = 0, l = textures.length; i < l; i ++ ) {
+			for (let i = 0, l = materials.length; i < l; i++) {
 
-				const texture = textures[ i ];
+				materials[i].dispose();
+
+			}
+
+			for (let i = 0, l = textures.length; i < l; i++) {
+
+				const texture = textures[i];
 				texture.dispose();
 
 			}
 
-			if ( this.onDisposeModel ) {
+			if (this.onDisposeModel) {
 
-				this.onDisposeModel( cached.scene, tile );
+				this.onDisposeModel(cached.scene, tile);
 
 			}
 
@@ -688,72 +688,66 @@ export class TilesRenderer extends TilesRendererBase {
 
 		}
 
-		tile._loadIndex ++;
+		tile._loadIndex++;
 
 	}
 
-	radians_to_degrees(radians)
-	{
-	  var pi = Math.PI;
-	  return radians * (180/pi);
+	radians_to_degrees(radians) {
+		var pi = Math.PI;
+		return radians * (180 / pi);
 	}
 
-	setTileVisible( tile, visible ) {
+	setTileVisible(tile, visible) {
 
 		const scene = tile.cached.scene;
 		const visibleTiles = this.visibleTiles;
 		const group = this.group;
-		console.log(tile.boundingVolume);
 		let region = tile.boundingVolume.region;
 		let east = this.radians_to_degrees(region[0]);
 		let south = this.radians_to_degrees(region[1]);
 		let west = this.radians_to_degrees(region[2]);
 		let north = this.radians_to_degrees(region[3]);
 
-		let lng = (east+west)/2;
-		let lat = (north+south)/2;
+		let lng = (east + west) / 2;
+		let lat = (north + south) / 2;
 
-		console.log(lat,lng);
 		let coords = utils.convertCoordinatesToUnits(lng, lat);
 
 		scene.position.set(coords[0] - this.center.x, 0, -(coords[1] - this.center.y))
-		//scene.position.y = 0;
-		//scene.position.z = -(coords[1] - this.center.y);
-		console.log(scene.position)
 
-		if ( visible ) {
+		if (visible) {
 
-			group.add( scene );
-			visibleTiles.add( tile );
-			scene.updateMatrixWorld( true );
+			group.add(scene);
+			visibleTiles.add(tile);
+			scene.updateMatrixWorld(true);
 
 		} else {
 
-			group.remove( scene );
-			visibleTiles.delete( tile );
+			group.remove(scene);
+			visibleTiles.delete(tile);
 
 		}
 
 	}
 
-	setTileActive( tile, active ) {
+	setTileActive(tile, active) {
 
 		const activeTiles = this.activeTiles;
-		if ( active ) {
+		if (active) {
 
-			activeTiles.add( tile );
+			activeTiles.add(tile);
 
 		} else {
 
-			activeTiles.delete( tile );
+			activeTiles.delete(tile);
 
 		}
 
 	}
 
-	calculateError( tile ) {
+	calculateError(tile) {
 
-		if ( tile.geometricError === 0.0 ) {
+		if (tile.geometricError === 0.0) {
 
 			return 0.0;
 
@@ -766,7 +760,7 @@ export class TilesRenderer extends TilesRendererBase {
 
 		// TODO: Use the content bounding volume here?
 		const boundingVolume = tile.boundingVolume;
-		if ( true ) {
+		if (true) {
 
 			const boundingBox = cached.box;
 			const boxTransformInverse = cached.boxTransformInverse;
@@ -775,53 +769,53 @@ export class TilesRenderer extends TilesRendererBase {
 
 			let maxError = - Infinity;
 			let minDistance = Infinity;
-			for ( let i = 0, l = cameras.length; i < l; i ++ ) {
+			for (let i = 0, l = cameras.length; i < l; i++) {
 
-				if ( ! inFrustum[ i ] ) {
+				if (!inFrustum[i]) {
 
 					continue;
 
 				}
 
 				// transform camera position into local frame of the tile bounding box
-				const camera = cameras[ i ];
-				const info = cameraInfo[ i ];
+				const camera = cameras[i];
+				const info = cameraInfo[i];
 				const invScale = info.invScale;
 
 				let error;
-				if ( camera.isOrthographicCamera ) {
+				if (camera.isOrthographicCamera) {
 
 					const pixelSize = info.pixelSize;
-					error = tile.geometricError / ( pixelSize * invScale );
+					error = tile.geometricError / (pixelSize * invScale);
 
 				} else {
 
 					let distance;
-					if ( region ) {
+					if (region) {
 
-						distance = region.distanceToPoint( info.position );
+						distance = region.distanceToPoint(info.position);
 
-					} else if ( boundingBox ) {
+					} else if (boundingBox) {
 
-						tempVector.copy( info.position );
-						tempVector.applyMatrix4( boxTransformInverse );
-						distance = boundingBox.distanceToPoint( tempVector );
+						tempVector.copy(info.position);
+						tempVector.applyMatrix4(boxTransformInverse);
+						distance = boundingBox.distanceToPoint(tempVector);
 
-					} else if ( sphere ) {
+					} else if (sphere) {
 
-						distance = sphere.distanceToPoint( info.position );
+						distance = sphere.distanceToPoint(info.position);
 
 					}
 
 					const scaledDistance = distance * invScale;
 					const sseDenominator = info.sseDenominator;
-					error = tile.geometricError / ( scaledDistance * sseDenominator );
+					error = tile.geometricError / (scaledDistance * sseDenominator);
 
-					minDistance = Math.min( minDistance, scaledDistance );
+					minDistance = Math.min(minDistance, scaledDistance);
 
 				}
 
-				maxError = Math.max( maxError, error );
+				maxError = Math.max(maxError, error);
 
 			}
 
@@ -835,7 +829,7 @@ export class TilesRenderer extends TilesRendererBase {
 
 	}
 
-	tileInView( tile ) {
+	tileInView(tile) {
 
 		// TODO: we should use the more precise bounding volumes here if possible
 		// cache the root-space planes
@@ -844,23 +838,23 @@ export class TilesRenderer extends TilesRendererBase {
 		const cached = tile.cached;
 		const sphere = cached.sphere;
 		const inFrustum = cached.inFrustum;
-		if ( sphere ) {
+		if (sphere) {
 
 			const cameraInfo = this.cameraInfo;
 			let inView = false;
-			for ( let i = 0, l = cameraInfo.length; i < l; i ++ ) {
+			for (let i = 0, l = cameraInfo.length; i < l; i++) {
 
 				// Track which camera frustums this tile is in so we can use it
 				// to ignore the error calculations for cameras that can't see it
-				const frustum = cameraInfo[ i ].frustum;
-				if ( frustum.intersectsSphere( sphere ) ) {
+				const frustum = cameraInfo[i].frustum;
+				if (frustum.intersectsSphere(sphere)) {
 
 					inView = true;
-					inFrustum[ i ] = true;
+					inFrustum[i] = true;
 
 				} else {
 
-					inFrustum[ i ] = false;
+					inFrustum[i] = false;
 
 				}
 

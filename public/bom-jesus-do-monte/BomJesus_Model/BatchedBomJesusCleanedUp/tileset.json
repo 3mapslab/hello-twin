@@ -1,15 +1,14 @@
 {
   "asset": {
-    "version": "0.0",
-    "tilesetVersion": "1.0.0-obj23dtiles",
+    "version": "1.0",
     "gltfUpAxis": "Y"
   },
-  "geometricError": 200,
+  "geometricError": 200000,
   "root": {
     "transform": [
       1.0, 0.0, 0.0, 0.0,
       0.0, -1.0, 0.0, 0.0,
-      0.0, 0.0, -1.0, 0.0,
+      0.0, 0.0, -1.0, 0.0, 
       0.0, 0.0, 0.0, 1.0
     ],
     "boundingVolume": {
@@ -22,10 +21,35 @@
         356.7050018310547
       ]
     },
-    "geometricError": 0,
+    "geometricError": 200000,
     "refine": "ADD",
     "content": {
       "url": "BomJesusCleanedUp.b3dm"
-    }
+    },
+    "children": [
+      {
+        "transform": [
+          -1.0, 0.0, 0.0, 0.0,
+          0.0, 1.0, 0.0, 0.0,
+          0.0, 0.0, 1.0, 0.0, 
+          0.0, 0.0, 0.0, 1.0
+        ],
+        "boundingVolume": {
+          "region": [
+            -0.14628722022,
+            0.72525957653,
+            -0.14627870018,
+            0.7252649714,
+            0,
+            356.7050018310547
+          ]
+        },
+        "geometricError": 200000,
+        "refine": "ADD",
+        "content": {
+          "url": "BomJesusCleanedUp.b3dm"
+        }
+      }
+    ]
   }
 }

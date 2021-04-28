@@ -73,11 +73,11 @@ export class WGS84Region {
 
 		// from west to east, south to north, min to max
 		// TODO: update these values to be minimum ranges in the above directions maybe?
-		this.east = 0;
-		this.west = 0;
+		this.east = 1;
+		this.west = 1;
 
-		this.south = 0;
-		this.north = 0;
+		this.south = 1;
+		this.north = 1;
 
 		this.minHeight = 0;
 		this.maxHeight = 0;
@@ -523,6 +523,7 @@ export class WGS84Region {
 		center.y = ( minY + maxY ) / 2;
 		center.z = ( minZ + maxZ ) / 2;
 
+	
 		const halfLon = MathUtils.lerp( west, east, 0.5 );
 		center.applyAxisAngle( _zVec, halfLon );
 
