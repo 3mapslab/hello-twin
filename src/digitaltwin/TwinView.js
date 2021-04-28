@@ -136,7 +136,7 @@ export default class TwinView {
 
     initMap() {
         // Create a map tiles provider object
-        var provider = new MapBoxProvider(KEY, "mapbox/streets-v10", MapBoxProvider.STYLE);
+        var provider = new MapBoxProvider(KEY, "mapbox/satellite-streets-v10", MapBoxProvider.STYLE);
 
         // Create the map view and add it to your THREE scene
         this.map = new MapView(MapView.PLANAR, provider, this.fetchEvent);
