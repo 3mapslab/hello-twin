@@ -84,7 +84,7 @@ export default class TwinView {
     }
 
     init3DTiles() {
-        this.tilesRenderer = new TilesRenderer( tileSetURL );
+        this.tilesRenderer = new TilesRenderer( tileSetURL, this.coords );
         this.tilesRenderer.setCamera( this.camera );
         this.tilesRenderer.setResolutionFromRenderer( this.camera, this.renderer );
         this.scene.add( this.tilesRenderer.group );

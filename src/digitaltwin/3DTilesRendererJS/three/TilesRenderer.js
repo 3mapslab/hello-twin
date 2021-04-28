@@ -1,3 +1,4 @@
+/*eslint-disable*/
 import { TilesRendererBase } from '../base/TilesRendererBase.js';
 import { B3DMLoader } from './B3DMLoader.js';
 import { PNTSLoader } from './PNTSLoader.js';
@@ -16,6 +17,7 @@ import {
 } from 'three';
 import { raycastTraverse, raycastTraverseFirstHit } from './raycastTraverse.js';
 import { WGS84Region } from './WGS84Region.js';
+import * as utils from '../../utils.js'
 
 const INITIAL_FRUSTUM_CULLED = Symbol( 'INITIAL_FRUSTUM_CULLED' );
 const DEG2RAD = MathUtils.DEG2RAD;
@@ -690,11 +692,35 @@ export class TilesRenderer extends TilesRendererBase {
 
 	}
 
+	radians_to_degrees(radians)
+	{
+	  var pi = Math.PI;
+	  return radians * (180/pi);
+	}
+
 	setTileVisible( tile, visible ) {
 
 		const scene = tile.cached.scene;
 		const visibleTiles = this.visibleTiles;
 		const group = this.group;
+		console.log(tile.boundingVolume);
+		let region = tile.boundingVolume.region;
+		let east = this.radians_to_degrees(region[0]);
+		let south = this.radians_to_degrees(region[1]);
+		let west = this.radians_to_degrees(region[2]);
+		let north = this.radians_to_degrees(region[3]);
+
+		let lng = (east+west)/2;
+		let lat = (north+south)/2;
+
+		console.log(lat,lng);
+		let coords = utils.convertCoordinatesToUnits(lng, lat);
+
+		scene.position.set(coords[0] - this.center.x, 0, -(coords[1] - this.center.y))
+		//scene.position.y = 0;
+		//scene.position.z = -(coords[1] - this.center.y);
+		console.log(scene.position)
+
 		if ( visible ) {
 
 			group.add( scene );

@@ -1,3 +1,5 @@
+/*eslint-disable*/
+
 import path from 'path';
 import { urlJoin } from '../utilities/urlJoin.js';
 import { LRUCache } from '../utilities/LRUCache.js';
@@ -32,7 +34,7 @@ export class TilesRendererBase {
 
 	}
 
-	constructor( url ) {
+	constructor( url, center ) {
 
 		// state
 		this.tileSets = {};
@@ -74,6 +76,7 @@ export class TilesRendererBase {
 		this.maxDepth = Infinity;
 		this.stopAtEmptyTiles = true;
 
+		this.center = center;
 	}
 
 	traverse( beforecb, aftercb ) {
@@ -528,7 +531,7 @@ export class TilesRendererBase {
 					tile.__loadingState = LOADED;
 
 					if ( tile.__wasSetVisible ) {
-
+						console.log("visible")
 						this.setTileVisible( tile, true );
 
 					}
