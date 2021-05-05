@@ -1,0 +1,30 @@
+{
+    "asset": {
+      "version": "1.0",
+      "gltfUpAxis": "Y"
+    },
+    "geometricError": 200000,
+    "root": {
+      "transform": [
+        1.0, 0.0, 0.0, 0.0,
+        0.0, -1.0, 0.0, 0.0,
+        0.0, 0.0, -1.0, 0.0, 
+        0.0, 0.0, 0.0, 1.0
+      ],
+      "boundingVolume": {
+        "region": [
+          -0.146241998,
+          0.725248016,
+          -0.146193313,
+          0.72528585,
+          0,
+          356.7050018310547
+        ]
+      },
+      "geometricError": 200000,
+      "refine": "ADD",
+      "content": {
+        "url": "BomJesusCleanedUp.b3dm"
+      }
+    }
+  }
