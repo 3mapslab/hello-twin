@@ -10,6 +10,11 @@ import TwinView from "@/digitaltwin/TwinView";
 import Stats from "./Stats";
 import SocketServiceHelper from "../helpers/realtime/socketservicehelper";
 
+const COORDS = {
+  "bom-jesus-do-monte": { lat: 41.5546580189999, lng: -8.377735018730164 },
+  "matosinhos": { lat: 41.185523935676713, lng: -8.7016652234108349 }
+}
+
 const mooringBitsProperties = {
   depth: 0.1,
   altitude: -1,
@@ -123,8 +128,9 @@ export default {
   },
   async mounted() {
     const configs = {
-      initialPosition: { lat: 41.5546580189999, lng: -8.377735018730164 },
-      url: 'http://localhost:8123/'
+      initialPosition: COORDS.matosinhos,
+      url: 'http://localhost:8123/',
+      activateContainers: true,
     };
     this.twinView = new TwinView(this.$refs.world, configs, layerProperties);
 

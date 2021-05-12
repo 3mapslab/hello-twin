@@ -16,7 +16,7 @@ import { TilesRenderer } from './3DTilesRendererJS/three/TilesRenderer';
 //const tileSetURL = "./TilesetWithDiscreteLOD/tileset.json";
 // const tileSetURL = "./BatchedAGI_HQ/tileset.json"
 // const tileSetURL = "./castle-santa-maria-da-feira-portugal/Batchedsanta_maria_da_feira_mod3d/tileset.json";
-const tileSetURL = "./bom-jesus-do-monte/BomJesus_Model/BatchedBomJesusCleanedUp/tileset.json";
+const tileSetURL = "./bom-jesus-do-monte/BomJesus_Model/BatchedBomJesusCleanedUp/bomjesus1.json";
 
 const KEY = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const TILE_LEVEL = 18;
@@ -62,7 +62,7 @@ export default class TwinView {
         this.map = null;
         this.initMap();
 
-        this.init3DTiles();
+        //this.init3DTiles();
 
         //Fog
         this.scene.fog = new THREE.Fog(0xFFFFFF, FAR / 3, FAR / 2);
@@ -78,7 +78,9 @@ export default class TwinView {
 
         this.layers = layerProps;
 
-        this.containers = new Containers(this.coords, this.scene);
+        if(configs.activateContainers) {
+            this.containers = new Containers(this.coords, this.scene);
+        }
 
         
     }
@@ -88,7 +90,6 @@ export default class TwinView {
         this.tilesRenderer.setCamera( this.camera );
         this.tilesRenderer.setResolutionFromRenderer( this.camera, this.renderer );
         this.scene.add( this.tilesRenderer.group );
-        console.log(this.tilesRenderer);
     }
 
     initCamera() {
@@ -158,7 +159,11 @@ export default class TwinView {
 
     animate() {
         requestAnimationFrame(this.animate.bind(this));
-        this.tilesRenderer.update();
+        
+        if(this.tilesRenderer){
+            this.tilesRenderer.update();
+        }
+
         this.camera.updateMatrixWorld();
         this.render();
         this.renderer.renderLists.dispose();
@@ -203,10 +208,7 @@ export default class TwinView {
                         mesh = this.loadSingleObject(this.layers[i]);
                         this.scene.add(mesh);
                         this.storeMesh(mesh, x, y);
-
-                    } else if (this.layers[i].type == "CLONED") {
-                        this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
-
+                        
                     } else {
                         mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
                         this.scene.add(mesh);
