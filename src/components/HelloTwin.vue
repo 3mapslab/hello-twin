@@ -128,9 +128,10 @@ export default {
   },
   async mounted() {
     const configs = {
-      initialPosition: COORDS.matosinhos,
+      initialPosition: COORDS['matosinhos'],
       url: 'http://localhost:8123/',
       activateContainers: true,
+      //tileset: "./bom-jesus-do-monte/BomJesus_Model/BatchedBomJesusCleanedUp/tileset.json"
     };
     this.twinView = new TwinView(this.$refs.world, configs, layerProperties);
 

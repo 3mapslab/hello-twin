@@ -11,13 +11,6 @@ import { point } from "@turf/helpers";
 import * as turf from "@turf/turf";
 import { TilesRenderer } from './3DTilesRendererJS/three/TilesRenderer';
 
-
-//const tileSetURL = "./NewYork/tileset.json";
-//const tileSetURL = "./TilesetWithDiscreteLOD/tileset.json";
-// const tileSetURL = "./BatchedAGI_HQ/tileset.json"
-// const tileSetURL = "./castle-santa-maria-da-feira-portugal/Batchedsanta_maria_da_feira_mod3d/tileset.json";
-const tileSetURL = "./bom-jesus-do-monte/BomJesus_Model/BatchedBomJesusCleanedUp/bomjesus1.json";
-
 const KEY = "pk.eyJ1IjoidHJpZWRldGkiLCJhIjoiY2oxM2ZleXFmMDEwNDMzcHBoMWVnc2U4biJ9.jjqefEGgzHcutB1sr0YoGw";
 const TILE_LEVEL = 18;
 const REMOVE_DISTANCE = 1000;
@@ -62,7 +55,9 @@ export default class TwinView {
         this.map = null;
         this.initMap();
 
-        //this.init3DTiles();
+        if(configs.tileset) {
+            this.init3DTiles(configs.tileset);
+        }
 
         //Fog
         this.scene.fog = new THREE.Fog(0xFFFFFF, FAR / 3, FAR / 2);
@@ -85,8 +80,8 @@ export default class TwinView {
         
     }
 
-    init3DTiles() {
-        this.tilesRenderer = new TilesRenderer( tileSetURL, this.coords );
+    init3DTiles(tileset) {
+        this.tilesRenderer = new TilesRenderer( tileset, this.coords );
         this.tilesRenderer.setCamera( this.camera );
         this.tilesRenderer.setResolutionFromRenderer( this.camera, this.renderer );
         this.scene.add( this.tilesRenderer.group );
@@ -208,7 +203,7 @@ export default class TwinView {
                         mesh = this.loadSingleObject(this.layers[i]);
                         this.scene.add(mesh);
                         this.storeMesh(mesh, x, y);
-                        
+
                     } else {
                         mesh = await this.loader.loadLayer(geojson, this.layers[i].properties, this.layers[i].type);
                         this.scene.add(mesh);
